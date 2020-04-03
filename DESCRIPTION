@@ -1,0 +1,18 @@
+Package: biClassify
+Type: Package
+Title: A package for binary classification using discriminant analysis.
+Version: 1.0
+Date: 2019-12-27
+Author: Alexander F. Lapanowski and Irina Gaynanova
+Maintainer: Alexander F. Lapanowski <aflapan@gmail.com>
+Description: More about what it does (maybe more than one line)
+License: What license is it under?
+Imports: Rcpp (>= 1.0.1), RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo
+Suggests: 
+    testthat,
+    knitr,
+    rmarkdown
+RoxygenNote: 6.1.1
+LazyData: true
+VignetteBuilder: knitr
