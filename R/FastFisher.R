@@ -21,14 +21,15 @@ SquareRootInvPi <- function(TrainCat){
 
 
 #' @export
-formGmat <- function(TrainData, TrainCat, m, s, Method = "Full", gamma = 1E-5){
+formGmat <- function(TrainData, TrainCat, m, s, Method = "Full", gamma = 1E-5, type = "Rademacher"){
   #----- form Matrices Used -----------
   sqrtInvPi <- SquareRootInvPi(TrainCat = TrainCat)
   E <- formIndicatorMatrix(TrainCat = TrainCat)
   if(Method == "Full"){
     S <- createSketchMatrix(n = nrow(TrainData),
                             m = m,
-                            s = s)
+                            s = s,
+                            type = type)
   }
   else{
     n1 <- nrows(TrainData[ TrainCat == 1, ])
@@ -38,8 +39,8 @@ formGmat <- function(TrainData, TrainCat, m, s, Method = "Full", gamma = 1E-5){
     m1 <- floor(p1 * m)
     m2 <- floor(p2 * m)
 
-    S1 <- createSketchMatrix(n = n1, m = m1, s = s)
-    S2 <- createSketchMatrix(n = n2, m = m2, s = s)
+    S1 <- createSketchMatrix(n = n1, m = m1, s = s, type = type)
+    S2 <- createSketchMatrix(n = n2, m = m2, s = s, type = type)
     S <- Matrix::bdiag(S1, S2)
   }
 
@@ -60,14 +61,15 @@ formGmat <- function(TrainData, TrainCat, m, s, Method = "Full", gamma = 1E-5){
 
 
 #' @export
-fullPredict <- function(TrainData, TrainCat, TestData, G = NULL, m, s = 0.01, gamma = 1E-5){
+fastRandomFisher <- function(TrainData, TrainCat, TestData, G = NULL, m, s = 0.01, gamma = 1E-5, type = "Rademacher"){
   #------- Form Projection Matrix and Projected Data -----------
   if(is.null(G)){
     G <- formGmat(TrainData = TrainData,
                   TrainCat = TrainCat,
                   m = m,
                   s = s,
-                  gamma = gamma)
+                  gamma = gamma, 
+                  type = type)
   }
   n1 <- sum(TrainCat == 1)
   n2 <- sum(TrainCat == 2)

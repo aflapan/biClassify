@@ -46,7 +46,7 @@ plot(LDA_Data$TrainData[,2]~LDA_Data$TrainData[,1],
      pch = c("1","2")[LDA_Data$TrainCat],
      xlab = "Feature 1", 
      ylab = "Feature 2",
-     main = "Scatterplot of LDA Training Data")
+     main = "Scatter Plot of LDA Training Data")
 ```
 
 This data set has $n= 10,000$ training samples with $p=10$ features. It is normally distributed, and the two classes have equal covariance matrices. The test data was independently generated from the same distribution, but it has only $n=1,000$ samples. 
@@ -73,7 +73,7 @@ plot(QDA_Data$TrainData[,2]~QDA_Data$TrainData[,1],
      pch = c("1","2")[QDA_Data$TrainCat],
      xlab = "Feature 1", 
      ylab = "Feature 2",
-     main = "Scatterplot of QDA Training Data")
+     main = "Scatter Plot of QDA Training Data")
 ```
 
 A modification of Quadratic Discriminant Analysis is well-suited to such data. The package comes with a function \texttt{qda} for such purposes.
@@ -398,7 +398,7 @@ This method is traditional Quadratic Discriminant Analysis, as presented in [Cit
 
 ```{r}
 Predictions <- qda(TrainData, TrainCat, TestData, Method = "Full")
-summary(Predictions)
+table(Predictions)
 ```
 
 \subsection{Compressed QDA}
@@ -410,14 +410,14 @@ Compressed QDA requires the parameters \texttt{m1}, \texttt{m2}, \texttt{s}.
 The easiest way to run Compressed QDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
 output <- qda(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Automatic")
-summary(output)
+table(output)
 ```
 
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
 output <- qda(TrainData, TrainCat, TestData, Method = "Compressed")
-summary(output)
+table(output)
 ```
 and obtain the same output.
 
@@ -430,7 +430,7 @@ output <- qda(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Inte
 "Please enter the number m2 of group 2 compression samples: "300
 "Please enter sparsity level s used in compression: "0.01
 
-summary(output)
+table(output)
 ```
 and the output is produced. 
 
@@ -453,7 +453,7 @@ It requires the additional parameters \texttt{m1} and \texttt{m2}.
 The easiest way to run sub-sampled QDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
 output <- qda(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Automatic")
-summary(output)
+table(output)
 ```
 
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
@@ -578,7 +578,7 @@ Lambda <- 0.002855275
 output <- KOS(TestData, TrainData, TrainCat, Sigma = Sigma, 
               Gamma = Gamma, Lambda = Lambda)
 print(output$Weight)
-summary(output$Predictions)
+table(output$Predictions)
 summary(output$Dvec)
 ```
 

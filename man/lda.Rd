@@ -5,7 +5,8 @@
 \title{Linear Discriminant Analysis (LDA)}
 \usage{
 lda(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic",
-  m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1e-05)
+  m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1e-05,
+  type = "Rademacher")
 }
 \arguments{
 \item{TrainData}{A (n x p) numeric matrix without missing values consisting of n training samples each with p features.}
@@ -18,7 +19,17 @@ lda(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic",
 
 \item{Mode}{A string of characters which determines how the reduced sample paramters will be inputted for each method. Must be either "Research", "Interactive", or "Automatic". Default is "Automatic".}
 
+\item{m1}{The number of class 1 compressed samples to be generated. Must be a positive integer.}
+
+\item{m2}{The number of class 2 compressed samples to be generated. Must be a positive integer.}
+
+\item{m}{The number of total compressed samples to be generated. Must be a positive integer.}
+
+\item{s}{The sparsity level used in compression. Must satify 0 < s < 1.}
+
 \item{gamma}{A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.}
+
+\item{type}{A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.}
 }
 \value{
 A list of 
@@ -64,13 +75,6 @@ lda(TrainData = TrainData,
      TrainCat = TrainCat,
      TestData = TestData,
      Method = "Compressed",
-     Mode = "Interactive",
-     gamma = 1E-5)
-     
- lda(TrainData = TrainData,
-     TrainCat = TrainCat,
-     TestData = TestData,
-     Method = "Compressed",
      Mode = "Automatic",
      gamma = 1E-5)
  
@@ -84,13 +88,6 @@ lda(TrainData = TrainData,
      Mode = "Research",
      m1 = m1,
      m2 = m2,
-     gamma = 1E-5)
-     
- lda(TrainData = TrainData,
-     TrainCat = TrainCat,
-     TestData = TestData,
-     Method = "Subsampled",
-     Mode = "Interactive",
      gamma = 1E-5)
  
   lda(TrainData = TrainData,
@@ -118,13 +115,6 @@ lda(TrainData = TrainData,
       TrainCat = TrainCat,
       TestData = TestData,
       Method = "Projected",
-      Mode = "Interactive",
-      gamma = 1E-5)
-      
-   lda(TrainData = TrainData,
-      TrainCat = TrainCat,
-      TestData = TestData,
-      Method = "Projected",
       Mode = "Automatic",
       gamma = 1E-5)
       
@@ -139,13 +129,6 @@ lda(TrainData = TrainData,
       m = m, 
       s = s,
       gamma = 1E-5)
-      
-   lda(TrainData = TrainData,
-      TrainCat = TrainCat,
-      TestData = TestData,
-      Method = "fastRandomFisher",
-      Mode = "Interactive",
-      gamma = 1E-5)   
       
    lda(TrainData = TrainData,
       TrainCat = TrainCat,

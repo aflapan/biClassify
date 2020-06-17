@@ -110,6 +110,10 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
 #' @param Method A string of characters which determinds which version of QDA to use. Must be either "Full", "Compressed", or "Subsampled". 
 #' @param Mode A string of characters which determines how the reduced sample paramters will be inputted for each method. Must be either "Research", "Interactive", or "Automatic". Default is "Automatic".
+#' @param m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
+#' @param m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
+#' @param m The number of total compressed samples to be generated. Must be a positive integer.
+#' @param s The sparsity level used in compression. Must satify 0 < s < 1.
 #' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
 #' @description Generates class predictions for \code{TestData}.
 #' @details Function which handles all implementations of LDA. 
@@ -144,13 +148,6 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Compressed",
-#'      Mode = "Interactive",
-#'      gamma = 1E-5)
-#'      
-#'  qda(TrainData = TrainData,
-#'      TrainCat = TrainCat,
-#'      TestData = TestData,
-#'      Method = "Compressed",
 #'      Mode = "Automatic",
 #'      gamma = 1E-5)
 #'  
@@ -164,13 +161,6 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #'      Mode = "Research",
 #'      m1 = m1,
 #'      m2 = m2,
-#'      gamma = 1E-5)
-#'      
-#'  qda(TrainData = TrainData,
-#'      TrainCat = TrainCat,
-#'      TestData = TestData,
-#'      Method = "Subsampled",
-#'      Mode = "Interactive",
 #'      gamma = 1E-5)
 #'      
 #'  qda(TrainData = TrainData,

@@ -36,7 +36,7 @@ kernelMatDiagHelper <- function(TrainData, Q, Sigma){
   compK <- matrix(0, nrow = m, ncol = m)
   #--- Iterate and compress each column of kernel matrix---
   for(i in 1:n){
-    x <- Kernel(TrainData[i, ], TrainData, Sigma = Sigma)
+    x <- Kernel(x = TrainData[i, ], TrainData = TrainData, Sigma = Sigma)
     M[ ,i] <- as.numeric(Q %*% as.numeric(x))
   }
   
@@ -59,7 +59,7 @@ kernelMatOffDiagHelper <- function(TrainData, TrainCat, Q1, Q2, Sigma){
   M <- matrix(0, nrow = m1, ncol = n2)
   
   for(i in 1:n2){
-    x <- Kernel(TrainX2[i, ], TrainX1, Sigma)
+    x <- Kernel(x = TrainX2[i, ], TrainData = TrainX1, Sigma)
     M[ ,i] <- as.numeric(Q1 %*% x)
   }
   M <- t(M)
@@ -81,7 +81,7 @@ GetProjection <- function(X, Data, Cat, Dvec, K, Sigma , Gamma) {
   
   n <- nrow(Kw)
   PV<-apply(X, MARGIN = 1, FUN = function(z){
-    Kx <- t(kernelCPP(x = z, Data = Data, sigma = sigma))  # Kernel evalutations of x and each vector in Data
+    Kx <- t(Kernel(x = z, TrainData = Data, Sigma = Sigma))  # Kernel evalutations of x and each vector in Data
     M1 <- colMeans(Kw)  #Create centered vector to shift Kx by
     Dvec <- scale(Dvec, center = TRUE, scale = FALSE)
     P <- ( Kx - M1 ) %*% Dvec
@@ -105,11 +105,11 @@ compressedKOS <- function(Kcomp, m1, m2, gamma, epsilon = 1e-5){
 }
 
 
-GetProjection <- function(x, Data, Cat, Q1, Q2, DVec, Kcomp , sigma){
+GetProjection <- function(x, Data, Cat, Q1, Q2, DVec, Kcomp , Sigma){
   m1 <- nrow(Q1)
   m2 <- nrow(Q2)
-  KVec1 <- kernelCPP(x = x, Data = subset(Data, Cat == 1), sigma = sigma)
-  KVec2 <- kernelCPP(x = x, Data = subset(Data, Cat == 2), sigma = sigma)
+  KVec1 <- Kernel(x = x, TrainData = subset(Data, Cat == 1), Sigma = Sigma)
+  KVec2 <- Kernel(x = x, TrainData = subset(Data, Cat == 2), Sigma = Sigma)
   Left1 <- as.numeric(tcrossprod(t(KVec1), Q1)+rep(mean(KVec1), m1))
   Left2 <- as.numeric(tcrossprod(t(KVec2), Q2)+rep(mean(KVec2), m2))
   LeftValue <- c(Left1, Left2) %*% DVec
@@ -120,32 +120,32 @@ GetProjection <- function(x, Data, Cat, Q1, Q2, DVec, Kcomp , sigma){
 #---- Nystrom Implementation -----
 
 # Returns the n x m matrix and m x m sub-sampled matrix
-NystromMat <- function(Data, m, sigma){
+NystromMat <- function(Data, m, Sigma){
   n <- nrow(Data)
   Set <- sample(x = c(1:n), size = m, replace = F)
   SubSample <- Data[Set, ]
-  Km <- KernelMat(Data = SubSample, sigma = sigma)
+  Km <- KernelMat(TrainData = SubSample, Sigma = Sigma)
   Km <- MASS::ginv(Km)
   Km <- expm::sqrtm(Km)
   Rectangle <- matrix(0, nrow = n, ncol =m)
   for(i in 1:m){
-    Rectangle[,i] <- kernelCPP(x = SubSample[i,], Data = Data, sigma = sigma)
+    Rectangle[,i] <- Kernel(x = SubSample[i,], TrainData = Data, Sigma = Sigma)
   }
   return(list(Rectangle , Km))
 }
 
 
-NystromKOS <- function(TrainData, TrainCat, m, gamma, sigma){
+NystromKOS <- function(TrainData, TrainCat, m, gamma, Sigma){
   YTheta <- transformResponse(TrainCat)
   n1 <- length(TrainCat[TrainCat==1])
   n2 <- length(TrainCat[TrainCat==2])
   n <- nrow(TrainData)
   Set <- sample(x = c(1:n), size = m, replace = F)
   SubSample <- TrainData[Set, ]
-  Km <- KernelMat(Data = SubSample, sigma = sigma)
+  Km <- KernelMat(TrainData = SubSample, Sigma = Sigma)
   Rectangle <- matrix(0, nrow = n, ncol = m)
   for(i in 1:m){
-    Rectangle[,i] <- kernelCPP(x = SubSample[i,], Data = TrainData, sigma = sigma)
+    Rectangle[,i] <- Kernel(x = SubSample[i,], TrainData = TrainData, Sigma = Sigma)
   }
   InvMat <- gamma*Km+crossprod(Rectangle, Rectangle)
   InvMat <- MASS::ginv(InvMat)
@@ -154,7 +154,7 @@ NystromKOS <- function(TrainData, TrainCat, m, gamma, sigma){
   return(list(Dvec = Dvec, Rec = Rectangle, sample = SubSample))
 }
 
-NyProject <- function(x, Sample, Rectangle, Dvec, sigma){
+NyProject <- function(x, Sample, Rectangle, Dvec, Sigma){
   CenterTerm <- colSums(Rectangle)%*%Dvec
-  return(crossprod(kernelCPP(x = x, Data = Sample, sigma = sigma ),Dvec) - CenterTerm)
+  return(crossprod(Kernel(x = x, TrainData = Sample, Sigma = Sigma ),Dvec) - CenterTerm)
 }

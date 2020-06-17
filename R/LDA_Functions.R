@@ -3,33 +3,92 @@
 # m is the number of rows in the sketching matrix
 # n is the number of rows in the data matrix
 # p is the probability parameter in the sparse bernoulli
-createSketch <- function(n, s){
+rademacherSketchMatrix <- function(n, m, s){
   if(n == 0) stop("n is set to 0")
   if(s == 0) stop("sparsity level s is set to 0")
-  len = rbinom(n = 1, size = n, prob = s) #initialize number of non-zero entries
-  x <- sample(c(-1, 1), size = len, replace = T) #Sample that many +1s and -1s
-  Indicies <- sample(x= 1:n , size = len) #Select where non-zero entries go
-  return(Matrix::sparseVector(x = x, i = Indicies, length = n))
-}
-
-
-#Reshapes the sparse radamacher vector into a matrix.
-createSketchMatrix <- function(n, m, s){
-  Q <- Matrix::Matrix(data = createSketch(n = n*m, s = s),
+  
+  len = rbinom(n = 1, size = n*m, prob = s) #initialize number of non-zero entries
+  
+  # --- Give non-zero entries depending on type
+  x <- sample(c(-1, 1), size = len, replace = T) #Sample len number of +/- 1s
+  Indices <- sample(x = 1:(n*m) , size = len) #Select where non-zero entries go
+  
+  Q <- Matrix::sparseVector(x = x, i = Indices, length = n*m)
+  Q <- Matrix::Matrix(data = Q,
                       nrow = m,
                       ncol = n,
                       sparse = T )
+  
   return(Q / sqrt(n * s))
 }
+
+
+gaussianSketchMatrix <- function(n, m, s){
+  if(n == 0) stop("n is set to 0")
+  if(s == 0) stop("sparsity level s is set to 0")
+  
+  len = rbinom(n = 1, size = n*m, prob = s) #initialize number of non-zero entries
+  
+  # --- Give non-zero entries depending on type
+  x <- rnorm(len, mean = 0, sd = 1) #Sample len number of +/- 1s
+  Indices <- sample(x = 1:(n*m) , size = len) #Select where non-zero entries go
+  
+  Q <- Matrix::sparseVector(x = x, i = Indices, length = n*m)
+  Q <- Matrix::Matrix(data = Q,
+                      nrow = m,
+                      ncol = n,
+                      sparse = T )
+  
+  return(Q / sqrt(n * s))
+}
+
+countSketchMatrix <- function(n, m){
+  # --- Random Sign Flips ---
+  randSigns <- sample(c(1, -1), size = n, replace = TRUE) # a n-vector of +/- 1
+  
+  # --- row allocations ---
+  RowAllocation <- sample(1:m, size = n, replace = TRUE)
+  
+  # ---
+  Q <- Matrix::Matrix(data = 0,
+                      nrow = m,
+                      ncol = n,
+                      sparse = T )
+  for(i in 1:m){
+    Q[i, RowAllocation == i] <- randSigns[RowAllocation == i]
+  }
+  return(sqrt(m/n)*Q)
+}
+
+
+createSketchMatrix <- function(n, m, s, type = "Rademacher"){
+  # --- Create compresison matrix depending on type ---
+  if(type == "Rademacher"){ # Rademacher sketch
+    Q <- rademacherSketchMatrix(n = n, m = m, s = s)
+  }
+  
+  else if(type == "Gaussian"){ # Gaussian sketch
+    Q <- gaussianSketchMatrix(n = n, m = m, s = s)
+  }
+  
+  else if(type == "Count"){ # Count Sketch
+    Q <- countSketchMatrix(n = n, m = m)
+  }
+  else{
+    stop("Please input correct type of compression matrix.")
+  }
+  return(Q)
+}
+
 
 #Compress the seperate groups of data X1 and X2 to dimension m1 and m2, respectively
 #X1 is a n1 x p matrix
 #X2 is a n2 x p matrix
 # m1 is a positive integer. Dimension of projection for X1
 # m2 is a positive integer. Dimension of projection for X2
-compressData <- function(X1, X2, m1, m2, s){
+compressData <- function(X1, X2, m1, m2, s, type = "Rademacher"){
   
-  # ---------Run preliminary dimension tests ------
+  # --- Run preliminary dimension tests ---
   if(ncol(X1) != ncol(X2)) stop("Number of features of X1 and X2 different")
   if(m1 == 0) stop("m1 is set to 0.")
   if(m2 == 0) stop("m2 is set to 0.")
@@ -38,23 +97,24 @@ compressData <- function(X1, X2, m1, m2, s){
   n2 <- nrow(X2)
   ncols <- ncol(X1)
   
-  # ------- Compute group means ---------
+  # --- Compute group means ----
   Mean1 <- colMeans(X1)
   Mean2 <- colMeans(X2)
   
-  #-------Create compresison matricies for both groups --------
-  Q1 <- createSketchMatrix(n = n1, m = m1, s = s)
-  Q2 <- createSketchMatrix(n = n2, m = m2, s = s)
+  # --- Create compresison matricies for both groups depending on type ---
+  Q1 <- createSketchMatrix(n = n1, m = m1, s = s, type = type)
+  Q2 <- createSketchMatrix(n = n2, m = m2, s = s, type = type)
   
-  # -------- Center Data ------
+  # --- Center Data ---
   X1 <- t(t(X1)-Mean1)
   X2 <- t(t(X2) - Mean2)
-  ###
   
-  QX1 <- Q1 %*% X1
-  QX2 <- Q2 %*% X2
+  QX1 <- Q1 %*% as.matrix(X1)
+  QX2 <- Q2 %*% as.matrix(X2)
   return(list(Cat1 = QX1, Cat2 = QX2))
 }
+
+
 
 
 formWithinGroupCov <- function(TrainData, TrainCat, Means1 = NULL, Means2 = NULL){
@@ -82,9 +142,10 @@ formWithinGroupCov <- function(TrainData, TrainCat, Means1 = NULL, Means2 = NULL
 
 
 
+
 formDiscrimVector <- function(TrainData, TrainCat, W = NULL, gamma = 1E-5){
   
-  # Form within-group covariance matrix W if NULL ------------
+  # --- Form within-group covariance matrix W if NULL ---
   if(is.null(W)){
     W <- formWithinGroupCov(TrainData = TrainData,
                             TrainCat = TrainCat)
@@ -94,7 +155,7 @@ formDiscrimVector <- function(TrainData, TrainCat, W = NULL, gamma = 1E-5){
   TrainX1 <- TrainData[ TrainCat == 1, ]
   TrainX2 <- TrainData[ TrainCat == 2, ]
   
-  # Form difference of group means vector d --------
+  # --- Form difference of group means vector d ---
   Means1 <- colMeans(TrainX1)
   Means2 <- colMeans(TrainX2)
   
@@ -105,7 +166,7 @@ formDiscrimVector <- function(TrainData, TrainCat, W = NULL, gamma = 1E-5){
   const <- sqrt(n1) * sqrt(n2) / n
   d <- const * (Means1 - Means2)
   
-  #Form Discriminant Vector ----------------
+  # --- Form Discriminant Vector ---
   Dvec <- solve(W) %*% d
   return(Dvec)
 }
@@ -158,16 +219,17 @@ computeMahalanobis <- function(TrainData, TrainCat, TestData, W = NULL, Dvec = N
 
 
 
-# Title: Classify
-# Description: A function which implements full LDA on the supplied data.
-# Parameter: TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
-# Parameter: TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
-# Parameter: TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
-# Parameter: Dvec An optinal (p x 1) vector used as the discriminant vector. Defualt value is NULL, as the function generates its own discriminant vector.
-# Parameter: W An optinal (p x p) matrix used as the within-group covariance matrix. Defualt value is NULL, as the function generates its own covariance matrix.
-# Parameter: gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
-# Description: Generates linear discriminant vector and class predictions for \code{TestData}.
-# Details: Function for full LDA.
+#' @title Classify
+#' @description A function which implements full LDA on the supplied data.
+#' @param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
+#' @param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
+#' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
+#' @param Dvec An optinal (p x 1) vector used as the discriminant vector. Defualt value is NULL, as the function generates its own discriminant vector.
+#' @param W An optinal (p x p) matrix used as the within-group covariance matrix. Defualt value is NULL, as the function generates its own covariance matrix.
+#' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
+#' @description Generates linear discriminant vector and class predictions for \code{TestData}.
+#' @details Function for full LDA.
+#' @export
 Classify <- function(TrainData, TrainCat, TestData, Dvec = NULL, W = NULL, gamma = 1E-5){
   n1 <- nrow(TrainData[TrainCat == 1, ])
   n2 <- nrow(TrainData[TrainCat == 2, ])
@@ -204,18 +266,20 @@ Classify <- function(TrainData, TrainCat, TestData, Dvec = NULL, W = NULL, gamma
 }
 
 
-# Title: compressPredict
-# Description: A function which implements compressed LDA on the supplied data.
-# Parameter: TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
-# Parameter: TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
-# Parameter: TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
-# Parameter: m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
-# Parameter: m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
-# Parameter: s The sparsity level used in compression. Must satify 0 < s < 1.
-# Parameter: gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
-# Description: Generates the compressed linear discriminant vector and class predictions for \code{TestData}.
-# Details: Function for compressed LDA.
-compressPredict <- function(TrainData, TrainCat, TestData, m1, m2, s, gamma = 1E-5){
+#' @title compressPredict
+#' @description A function which implements compressed LDA on the supplied data.
+#' @param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
+#' @param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
+#' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
+#' @param m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
+#' @param m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
+#' @param s The sparsity level used in compression. Must satify 0 < s < 1.
+#' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
+#' @param type A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.
+#' @description Generates the compressed linear discriminant vector and class predictions for \code{TestData}.
+#' @details Function for compressed LDA.
+#' @export
+compressPredict <- function(TrainData, TrainCat, TestData, m1, m2, s, gamma = 1E-5, type = "Rademacher"){
   #----- Split Data into Groups ------
   TrainX1 <- TrainData[TrainCat == 1, ]
   TrainX2 <- TrainData[TrainCat == 2, ]
@@ -231,7 +295,8 @@ compressPredict <- function(TrainData, TrainCat, TestData, m1, m2, s, gamma = 1E
                             X2 = TrainX2,
                             m1 = m1,
                             m2 = m2,
-                            s = s)
+                            s = s,
+                            type = type)
   compCat <- c(rep(1, m1), rep(2, m2))
   
   compTrainX1 <- as.matrix(compTrain$Cat1)
@@ -279,16 +344,17 @@ subsampleClasses <- function(TrainData, TrainCat, m1, m2){
 }
 
 
-# Title: subsetPredict
-# Description: A function which implements sub-sampled LDA on the supplied data.
-# Parameter: TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
-# Parameter: TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
-# Parameter: TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
-# Parameter: m1 The number of class 1 sub-samples. Must be a positive integer.
-# Parameter: m2 The number of class 2 sub-samples. Must be a positive integer.
-# Parameter: gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
-# Description: Generates the sub-sampled linear discriminant vector and class predictions for \code{TestData}.
-# Detials: Function for sub-sampled LDA.
+#' @title subsetPredict
+#' @description A function which implements sub-sampled LDA on the supplied data.
+#' @param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
+#' @param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
+#' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
+#' @param m1 The number of class 1 sub-samples. Must be a positive integer.
+#' @param m2 The number of class 2 sub-samples. Must be a positive integer.
+#' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
+#' @description Generates the sub-sampled linear discriminant vector and class predictions for \code{TestData}.
+#' @details Function for sub-sampled LDA.
+#' @export
 subsetPredict <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
   stopifnot(ncol(TrainData) == ncol(TestData))
   stopifnot(m1 > 0 & m2 > 0)
@@ -311,20 +377,22 @@ subsetPredict <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 
 
 
-# Title: projectPredict
-# Description: A function which implements projected LDA on the supplied data.
-# Parameter: TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
-# Parameter: TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
-# Parameter: TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
-# Parameter: Q1 An optional (m1 x n1) sparse matrix used for compressing class 1. The default value is NULL.
-# Parameter: Q2 An optional (m2 x n2) sparse matrix used for compressing class 2. The default value is NULL.
-# Parameter: m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
-# Parameter: m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
-# Parameter: s The sparsity level used in compression. Must satify 0 < s < 1.
-# Parameter: gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
-# Generates the compressed linear discriminant vector and projected class predictions for \code{TestData}.
-# Function for projected LDA.
-projectPredict <- function(TrainData, TrainCat, TestData, Q1 = NULL, Q2 = NULL, m1, m2, s = 0.01, gamma = 1E-5){
+#' @title projectPredict
+#' @description A function which implements projected LDA on the supplied data.
+#' @param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
+#' @param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
+#' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
+#' @param Q1 An optional (m1 x n1) sparse matrix used for compressing class 1. The default value is NULL.
+#' @param Q2 An optional (m2 x n2) sparse matrix used for compressing class 2. The default value is NULL.
+#' @param m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
+#' @param m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
+#' @param s The sparsity level used in compression. Must satify 0 < s < 1.
+#' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
+#' @param type A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.
+#' @description Generates the compressed linear discriminant vector and projected class predictions for \code{TestData}.
+#' @details Function for projected LDA.
+#' @export
+projectPredict <- function(TrainData, TrainCat, TestData, Q1 = NULL, Q2 = NULL, m1, m2, s = 0.01, gamma = 1E-5, type = "Rademacher"){
   #----- Split Data into Groups ------
   TrainX1 <- TrainData[TrainCat == 1, ]
   TrainX2 <- TrainData[TrainCat == 2, ]
@@ -338,7 +406,9 @@ projectPredict <- function(TrainData, TrainCat, TestData, Q1 = NULL, Q2 = NULL, 
                               X2 = TrainX2,
                               m1 = m1,
                               m2 = m2,
-                              s = s)
+                              s = s,
+                              type = type)
+    
     compTrain1 <- as.matrix(compTrain$Cat1)
   }
   else{
@@ -353,7 +423,8 @@ projectPredict <- function(TrainData, TrainCat, TestData, Q1 = NULL, Q2 = NULL, 
                               X2 = TrainX2,
                               m1 = m1,
                               m2 = m2,
-                              s = s)
+                              s = s,
+                              type = type)
     compTrain2 <- as.matrix(compTrain$Cat2)
   }
   
@@ -412,20 +483,6 @@ projectPredict <- function(TrainData, TrainCat, TestData, Q1 = NULL, Q2 = NULL, 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 testParameters <- function(m1,m2,s){
   if(is.null(m1)){
     stop("Number of compressed samples m1 is null.")
@@ -468,7 +525,12 @@ testParameters <- function(m1,m2,s){
 #' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
 #' @param Method A string of characters which determines which version of LDA to use. Must be either "Full", "Compressed", "Subsampled", "Projected", or "fastRandomFisher". Default is "Full".
 #' @param Mode A string of characters which determines how the reduced sample paramters will be inputted for each method. Must be either "Research", "Interactive", or "Automatic". Default is "Automatic".
+#' @param m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
+#' @param m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
+#' @param m The number of total compressed samples to be generated. Must be a positive integer.
+#' @param s The sparsity level used in compression. Must satify 0 < s < 1.
 #' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
+#' @param type A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.
 #' @description Generates linear discriminant vector and class predictions for \code{TestData}.
 #' @details Function which handles all implementations of LDA. 
 #' @examples 
@@ -502,13 +564,6 @@ testParameters <- function(m1,m2,s){
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Compressed",
-#'      Mode = "Interactive",
-#'      gamma = 1E-5)
-#'      
-#'  lda(TrainData = TrainData,
-#'      TrainCat = TrainCat,
-#'      TestData = TestData,
-#'      Method = "Compressed",
 #'      Mode = "Automatic",
 #'      gamma = 1E-5)
 #'  
@@ -522,13 +577,6 @@ testParameters <- function(m1,m2,s){
 #'      Mode = "Research",
 #'      m1 = m1,
 #'      m2 = m2,
-#'      gamma = 1E-5)
-#'      
-#'  lda(TrainData = TrainData,
-#'      TrainCat = TrainCat,
-#'      TestData = TestData,
-#'      Method = "Subsampled",
-#'      Mode = "Interactive",
 #'      gamma = 1E-5)
 #'  
 #'   lda(TrainData = TrainData,
@@ -556,13 +604,6 @@ testParameters <- function(m1,m2,s){
 #'       TrainCat = TrainCat,
 #'       TestData = TestData,
 #'       Method = "Projected",
-#'       Mode = "Interactive",
-#'       gamma = 1E-5)
-#'       
-#'    lda(TrainData = TrainData,
-#'       TrainCat = TrainCat,
-#'       TestData = TestData,
-#'       Method = "Projected",
 #'       Mode = "Automatic",
 #'       gamma = 1E-5)
 #'       
@@ -582,20 +623,13 @@ testParameters <- function(m1,m2,s){
 #'       TrainCat = TrainCat,
 #'       TestData = TestData,
 #'       Method = "fastRandomFisher",
-#'       Mode = "Interactive",
-#'       gamma = 1E-5)   
-#'       
-#'    lda(TrainData = TrainData,
-#'       TrainCat = TrainCat,
-#'       TestData = TestData,
-#'       Method = "fastRandomFisher",
 #'       Mode = "Automatic",
 #'       gamma = 1E-5)  
 #' @return A list of 
 #' \item{Predictions}{(m x 1) Vector of predicted class labels for the data points in \code{TestData}.}  
 #' \item{Dvec}{ (p x 1) Discriminant vector.}
 #' @export
-lda <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic", m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1E-5){
+lda <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic", m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1E-5, type = "Rademacher"){
   if(Mode == "Automatic"){
     m1 <- sum(TrainCat == 1)/10
     m2 <- sum(TrainCat == 2)/10
@@ -626,7 +660,8 @@ lda <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automati
                            m1 = m1,
                            m2 = m2, 
                            s = s,
-                           gamma = gamma))
+                           gamma = gamma,
+                           type = type))
   }
   else if(Method == "Projected"){
     if(Mode == "Interactive"){
@@ -645,7 +680,8 @@ lda <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automati
                           m1 = m1,
                           m2 = m2,
                           s = s,
-                          gamma = gamma))
+                          gamma = gamma,
+                          type = type))
   }
   else if(Method == "Subsampled"){
     if(Mode == "Interactive"){
@@ -670,12 +706,13 @@ lda <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automati
       m <- as.integer(m)
       s <- as.numeric(s)
     }
-    return(fullPredict(TrainData = TrainData,
-                       TrainCat = TrainCat,
-                       TestData = TestData,
-                       m = m,
-                       s = s,
-                       gamma = gamma))
+    return(fastRandomFisher(TrainData = TrainData,
+                            TrainCat = TrainCat,
+                            TestData = TestData,
+                            m = m,
+                            s = s,
+                            gamma = gamma,
+                            type = type))
   }
   return("Error: No version of LDA was run.")
 }

@@ -83,9 +83,8 @@ test_that("Testing MASS and package QDA are equal for high dimensional normal",{
   QDAlabels <- QDAclassify(TrainData = TrainData,
                            TrainCat = TrainCat,
                            TestData = TestData)
-  mean(QDAlabels != TestCat)
 
-  MASSQDA <- qda(TrainData, as.factor(TrainCat))
+  MASSQDA <- MASS::qda(TrainData, as.factor(TrainCat))
   MASSlabels <- predict(MASSQDA, TestData)$class
   expect_equal(as.numeric(QDAlabels) , as.numeric(MASSlabels))
 })
