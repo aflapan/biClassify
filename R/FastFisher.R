@@ -32,8 +32,8 @@ formGmat <- function(TrainData, TrainCat, m, s, Method = "Full", gamma = 1E-5, t
                             type = type)
   }
   else{
-    n1 <- nrows(TrainData[ TrainCat == 1, ])
-    n2 <- nrows(TrainData[ TrainCat == 2, ])
+    n1 <- nrow(TrainData[ TrainCat == 1, ])
+    n2 <- nrow(TrainData[ TrainCat == 2, ])
     p1 <- n1/(n1+n2)
     p2 <- 1 - p1
     m1 <- floor(p1 * m)

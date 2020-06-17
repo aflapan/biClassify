@@ -3,6 +3,7 @@
 # m is the number of rows in the sketching matrix
 # n is the number of rows in the data matrix
 # p is the probability parameter in the sparse bernoulli
+#' @importFrom stats rbinom
 rademacherSketchMatrix <- function(n, m, s){
   if(n == 0) stop("n is set to 0")
   if(s == 0) stop("sparsity level s is set to 0")
@@ -22,7 +23,8 @@ rademacherSketchMatrix <- function(n, m, s){
   return(Q / sqrt(n * s))
 }
 
-
+#' @importFrom stats rbinom
+#' @importFrom stats rnorm
 gaussianSketchMatrix <- function(n, m, s){
   if(n == 0) stop("n is set to 0")
   if(s == 0) stop("sparsity level s is set to 0")
@@ -116,7 +118,7 @@ compressData <- function(X1, X2, m1, m2, s, type = "Rademacher"){
 
 
 
-
+#' @importFrom stats cov
 formWithinGroupCov <- function(TrainData, TrainCat, Means1 = NULL, Means2 = NULL){
   n1 <- sum(TrainCat == 1)
   n2 <- sum(TrainCat == 2)
