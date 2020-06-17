@@ -1,5 +1,4 @@
 ## Compressed KOS Code
-#' @export
 formCompKMat <- function(TrainData, TrainCat, m1, m2, s, Sigma){
   TrainX1 <- TrainData[TrainCat == 1, ]
   TrainX2 <- TrainData[TrainCat == 2, ]

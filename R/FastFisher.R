@@ -1,5 +1,5 @@
+# --- Functions for implementing Fast Random Fisher Discriminant Analysis ---
 
-#' @export
 formIndicatorMatrix <- function(TrainCat){
   E <- matrix(0 , nrow = length(TrainCat), ncol = 2)
   E[TrainCat == 1 , 1] <- 1
@@ -7,20 +7,20 @@ formIndicatorMatrix <- function(TrainCat){
   return(E)
 }
 
-#' @export
+
 formProbMat <- function(TrainCat){
   E <- formIndicatorMatrix(TrainCat)
   return(crossprod(E,E))
 }
 
-#' @export
+
 SquareRootInvPi <- function(TrainCat){
   Pi <- formProbMat(TrainCat = TrainCat)
   return(sqrt(solve(Pi)))
 }
 
 
-#' @export
+
 formGmat <- function(TrainData, TrainCat, m, s, Method = "Full", gamma = 1E-5, type = "Rademacher"){
   #----- form Matrices Used -----------
   sqrtInvPi <- SquareRootInvPi(TrainCat = TrainCat)
@@ -60,7 +60,7 @@ formGmat <- function(TrainData, TrainCat, m, s, Method = "Full", gamma = 1E-5, t
 }
 
 
-#' @export
+
 fastRandomFisher <- function(TrainData, TrainCat, TestData, G = NULL, m, s = 0.01, gamma = 1E-5, type = "Rademacher"){
   #------- Form Projection Matrix and Projected Data -----------
   if(is.null(G)){
