@@ -7,7 +7,7 @@ number_sections: true
 vignette: >
   %\VignetteIndexEntry{biClassify}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  %\usepackage[UTF-8]{inputenc}
 ---
 
 ```{r, include = FALSE}
