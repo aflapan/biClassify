@@ -97,9 +97,14 @@ compressedKOS <- function(Kcomp, m1, m2, gamma, epsilon = 1e-5){
   if(m != nrow(Kcomp)) stop("Error: m1+m2 does not equal the number of rows of Kcomp")
   Kcomp <- scale(Kcomp, scale = F, center = T) 
   Kcomp <- t(scale(t(Kcomp), center = T, scale = F))
-  YThetacomp <- transformResponse(Cat = c(rep(1, m1), rep(2, m2)) )
+
+  #Generate One-hot encoding matrix and optimal scores
+  Y <- IndicatMat(c(rep(1, m1), rep(2, m2)))$Categorical
+  Theta <- OptScores(c(rep(1, m1), rep(2, m2)))
+  YThetaComp <- Y %*% Theta
+  
   Dvec <- solve(a = Kcomp %*% Kcomp+m*gamma*(Kcomp+epsilon*diag(m)), 
-                b = Kcomp %*% YThetacomp)
+                b = Kcomp %*% YThetaComp)
   return(Dvec)
 }
 
@@ -135,7 +140,11 @@ NystromMat <- function(Data, m, Sigma){
 
 
 NystromKOS <- function(TrainData, TrainCat, m, gamma, Sigma){
-  YTheta <- transformResponse(TrainCat)
+  #Generate One-hot encoding matrix and optimal scores
+  Y <- IndicatMat(TrainCat)$Categorical
+  Theta <- OptScores(TrainCat)
+  YTheta <- Y %*% Theta
+ 
   n1 <- length(TrainCat[TrainCat==1])
   n2 <- length(TrainCat[TrainCat==2])
   n <- nrow(TrainData)
