@@ -25,10 +25,19 @@ double SoftThreshCPP(double x,double lambda){
   return(t);
 }
 
+// [[Rcpp::export]]
+arma::Col<double> KernelCPP(arma::Row<double> x, arma::Mat<double> TrainData, double Sigma){
+  int p = TrainData.n_cols;
+  arma::Mat<double> Diff = TrainData.each_row()-x;
+  Diff = square(Diff);
+  arma::Col<double> RowSums = Diff*arma::ones(p);
+  arma::Col<double> KernelVec = exp(-RowSums / Sigma);
+  return(KernelVec);
+}
 
 // [[Rcpp::export]]
 arma::Col<double> CoordDesCPP(arma::Col<double> w0, arma::Mat<double> Q, arma::Col<double> beta,double Lambda,double Epsilon, int Maxniter=1.0e7){
-  int p=w0.size();
+  int p = w0.size();
   int niter=0; // Declare iteration number.
   double error=1; // Declare error term. This will measure convergence of weigh
   arma::Col<double> w=w0; //Declare updated weight and initialize it to old weights.
@@ -45,8 +54,8 @@ arma::Col<double> CoordDesCPP(arma::Col<double> w0, arma::Mat<double> Q, arma::C
          // std::cout<<i<<"-th Q Diagonal Term is zero without previous weight being zero." <<"\n";
         }
         else{
-          double a=beta(i)-dot(Q.row(i),w)+Q(i,i)*w(i);
-          double b=Lambda/2;
+          double a = beta(i)-dot(Q.row(i),w)+Q(i,i)*w(i);
+          double b = Lambda/2;
           w[i]=SoftThreshCPP(a,b);
           w[i]=w[i]/Q(i,i);
           if(w[i]>1){
@@ -64,13 +73,13 @@ arma::Col<double> CoordDesCPP(arma::Col<double> w0, arma::Mat<double> Q, arma::C
     niter++;
     error=sqrt(normDiff);
   }
-          return(w);
+  return(w);
 }
 
 
 // [[Rcpp::export]]
 arma::Col<double> SolveKOSCPP(arma::Mat<double> YTheta,arma::Mat<double> K,double Gamma,double Epsilon=1e-5){
-   int n=K.n_rows;
+   int n = K.n_rows;
    arma::Mat<double> C=arma::eye(n,n)-(1/n)*arma::ones(n,n); //Create column-centering matrix
    arma::Mat<double> M=(C*K)*C; // This doubly-centered kernel matrix appears often. Compute it once to save time
    arma::Mat<double> Mat=(M*M+ n*Gamma*(M+Epsilon*arma::diagmat(arma::ones(n)))); //Add the epsilon*I term for stability
@@ -82,22 +91,21 @@ arma::Col<double> SolveKOSCPP(arma::Mat<double> YTheta,arma::Mat<double> K,doubl
 // [[Rcpp::export]]
 arma::Mat<double> DerivCPP(arma::Row<double> x, arma::Mat<double> Data, arma::Col<double> w0, double sigmaD){
   arma::Mat<double> Diff=Data.each_row()-x;
-  Diff=square(Diff);
-
+  Diff = square(Diff);
   arma::Mat<double> DiffPart = (-2/(sigmaD))*(Diff*diagmat(w0));
-  int k=Data.n_cols;
-  arma::Col<double> RowSums=Diff*arma::ones(k);
-  arma::Col<double> KernPart=exp(-RowSums*(1/(sigmaD)));
-  arma::Mat<double> result=arma::diagmat(KernPart)*DiffPart;
+  int k = Data.n_cols;
+  arma::Col<double> RowSums = Diff*arma::ones(k);
+  arma::Col<double> KernPart = exp(-RowSums*(1/(sigmaD)));
+  arma::Mat<double> result = arma::diagmat(KernPart)*DiffPart;
   return(result);
 }
 
 // [[Rcpp::export]]
 arma::Mat<double> TMatCPP(arma::Mat<double> Data, arma::Col<double> A, arma::Col<double> w0, double sigmaTm){
-  int p=Data.n_cols;
-  int n=A.n_rows;
+  int p = Data.n_cols;
+  int n = A.n_rows;
   arma::Mat<double> C=arma::eye(n,n)-(1/n)*arma::ones(n,n);
-  A=C*A;
+  A = C*A;
   arma::Mat<double> T=arma::zeros(n,p);
   for(int j=0; j<n; j++){
     T.row(j)=A.t()*DerivCPP(Data.row(j),Data,w0,sigmaTm);
@@ -116,4 +124,84 @@ double ObjectiveFuncCPP(arma::Col<double> w, arma::Mat<double> KwOF, arma::Mat<d
   arma::Mat<double> RidgeMat=DVectors.t()*(M*DVectors+EpsilonOF*DVectors);
   double Ridge = GammaOF*accu(arma::diagmat(RidgeMat)); //Ridge component
   return(Regression+LASSO+Ridge); //The sum of all three gives the objective function
+}
+
+// [[Rcpp::export]]
+arma::Col<double> LambdaSeqCpp(double from, double to, double length){
+  double Ratio = pow(to/from, 1/(length - 1) );
+  arma::Col<double> LambdaSeq = arma::zeros(length);
+  for(int i = 0; i < length; i++){
+    LambdaSeq[i] = pow(Ratio, i) * from;
+  }
+  return(LambdaSeq);
+}
+
+
+// [[Rcpp::export]]
+double LassoCVCpp(arma::Mat<double> TrainData, arma::Col<int> TrainCat, arma::Col<double> B, double Sigma, double Gamma, double Epsilon = 1E-5){
+  // Generate Lambda Values
+  double c = 2 * max(abs(B));
+  arma::Col<double> LambdaSeq = LambdaSeqCpp(pow(10, -10)*c, c, 20);
+  
+  int n = TrainData.n_rows;
+  int p = TrainData.n_cols;
+  arma::Col<double> w = arma::ones(p);
+  arma::Col<double> Errors = arma::ones(20);
+  
+  //Create Folds for Cross-validation
+  n = n-1;
+  n = n+1;
+  return(0);
+}
+
+// [[Rcpp::export]]
+arma::Col<double> GetProjectionsCPP(arma::Mat<double> TrainData, arma::Col<int> TrainCat, arma::Mat<double> TestData, arma::Col<double> Dvec, arma::Col<double> w, arma::Mat<double> Kw, double Sigma, double Gamma){
+  int n = TrainData.n_rows;
+  int p = TrainData.n_cols;
+  int m = TestData.n_rows;
+  arma::Mat<double> Y = arma::zeros(n,2);
+  
+  //Fill Categorical Response
+  int n1 = 0;
+  int n2 = 0;
+  for(int i = 0; i < n; i++){
+    int Index = TrainCat[i]-1;
+    Y(i, Index) = 1;
+    if(TrainCat[i] == 1){
+      n1++;
+    }
+    else{
+      n2++;
+    }
+  }
+  
+  //Generate Transformed Response 
+  arma::Col<double> theta = arma::zeros(2,1);
+  theta[0] = pow(n2 / n1, 1/2);
+  theta[1] = - pow(n1 / n2, 1/2);
+  arma::Col<double> YTheta = Y*theta;
+  
+  // Weight TrainData and TestData
+  for(int i = 0; i < p; i++){
+    TrainData.col(i) = TrainData.col(i) * w[i];
+    TestData.col(i) = TestData.col(i) * w[i];
+  }
+  
+  //Colmeans Vector
+  arma::Col<double> Means = Kw*arma::ones(n) / n;
+  
+  //Center Discriminant Vector
+  double DvecMean = mean(Dvec);
+  for(int i = 0; i < n; i++){
+    Dvec[i] = Dvec[i] - DvecMean;
+  }
+  
+  //Generate Projection Values
+  arma::Col<double> ProjValues = arma::zeros(m);
+  for(int i = 0; i < m; i++){
+    arma::Row<double> x = TestData.row(i);
+    arma::Col<double> KernVec = KernelCPP(x, TrainData, Sigma);
+    ProjValues[i] = dot(KernVec - Means, Dvec);
+  }
+  return(ProjValues);
 }

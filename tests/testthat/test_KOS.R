@@ -3,13 +3,13 @@
 test_that("KernelMat function equals Gaussian kernel matrix", {
  Data <- KOS_Data$TrainData
  n <- nrow(Data)
- sigma <- 1
- K <- KernelMat(TrainData = Data, Sigma = sigma)
+ Sigma <- 1
+ K <- KernelMat(TrainData = Data, Sigma = Sigma)
  
  K_test <- matrix(0, nrow = n, ncol = n)
  for(i in 1:n){
    for(j in 1:n){
-     K_test[i,j] <- exp(- sum((Data[i,] - Data[j,])^2))
+     K_test[i,j] <- exp(- sum((Data[i,] - Data[j,])^2)/Sigma)
    }
  }
  expect_equal(K, K_test)
@@ -31,6 +31,16 @@ test_that("Weighted Kernel Matrix equals all 1s when weights are 0", {
   Kw <- KwMat(TrainData = Data, w = rep(0, ncol(Data)), Sigma = sigma)
   ones <- matrix(1, nrow = n, ncol = n)
   expect_equal(ones, Kw)
+})
+
+
+test_that("KernelCPP and Kernel function are the same.",{
+  TrainData <- KOS_Data$TrainData
+  x <- KOS_Data$TestData[1,]
+  Sigma <- 1
+  KernCPP<- KernelCPP(x = x, TrainData = TrainData, Sigma = Sigma)
+  Kern <- Kernel(x = x, TrainData = TrainData, Sigma = Sigma)
+  expect_equal(mean(abs(KernCPP - Kern)) < 1E-10 , TRUE)
 })
 
 #--- Testing the Optimal Scoring Function ---
@@ -155,4 +165,47 @@ test_that("Checking that all parameters are positive", {
   test_lambda <- output$Lambda
   
   expect_equal(all(test_sigma > 0, test_ridge > 0, test_lambda > 0), TRUE)
+})
+
+# --- Testing Projection Functions Give Equal Output ---
+test_that("Rcpp GetProjectionsCPP and R GetProjections functions are equal",{
+  TrainData <- KOS_Data$TrainData
+  TrainCat <- KOS_Data$TrainCat
+  TestData <- KOS_Data$TestData
+  
+  n <- nrow(TrainData)
+  p <- ncol(TrainData)
+  Y <- IndicatMat(TrainCat)$Categorical
+  Theta <- OptScores(TrainCat)
+  YTheta <- Y %*% Theta
+  
+  Sigma <- 1
+  Gamma <- 0.09853699 #result of SelectRidge
+  
+  Dvec <- SolveKOSCPP(YTheta, K, Gamma)
+  B <- FormQB(TrainData = TrainData, 
+              Dvec = Dvec, 
+              YTheta = YTheta, 
+              w = rep(1, p), 
+              Sigma = Sigma, 
+              Gamma = Gamma)$B
+  
+  R_Projs <- GetProjections(TrainData = TrainData,
+                           TrainCat = TrainCat,
+                           TestData = TestData,
+                           Dvec = Dvec,
+                           w = rep(1, ncol(TrainData)),
+                           Kw = K,
+                           Sigma = Sigma, 
+                           Gamma = Gamma)
+  CPP_Projs <- GetProjectionsCPP(TrainData = TrainData,
+                                 TrainCat = TrainCat,
+                                 TestData = TestData,
+                                 Dvec = Dvec,
+                                 w = rep(1, ncol(TrainData)),
+                                 Kw = K,
+                                 Sigma = Sigma,
+                                 Gamma = Gamma)
+  
+  expect_equal(sum(abs(R_Projs - CPP_Projs)) < 1E-10, TRUE)
 })

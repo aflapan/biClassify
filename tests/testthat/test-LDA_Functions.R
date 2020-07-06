@@ -1,4 +1,3 @@
-library(DAAG)
 library(datasets)
 library(mvtnorm)
 
@@ -30,8 +29,8 @@ test_that("Testing discrimiant vector if Null cov matrix is passed into function
 
 test_that("Testing classification compared to MASS LDA on leaf data", {
   TrainCat <- leafshape17$arch + 1
-  leaf17.lda <- MASS::lda(arch ~ logwid+loglen, data = leafshape17)
-  MASSclass <- as.numeric(predict(leaf17.lda)$class)
+  leaf17.LDA <- MASS::lda(arch ~ logwid+loglen, data = leafshape17)
+  MASSclass <- as.numeric(predict(leaf17.LDA)$class)
   
   compLDAclass <- Classify(TrainData = data.matrix(leafshape17[, c(5, 7)]),
                            TrainCat = TrainCat,
@@ -66,8 +65,8 @@ test_that("Testing classification compared to MASS LDA on large normal data.", {
   colnames(TestData) <- c("1","2","3","4","5","6","7","8","9","10")
   
   #--- Compute MASS Labels ---
-  normal.lda <- MASS::lda(Class ~ . , data = TrainData)
-  MASSclass <- as.numeric(predict(object = normal.lda, newdata = TestData)$class)
+  normal.LDA <- MASS::lda(Class ~ . , data = TrainData)
+  MASSclass <- as.numeric(predict(object = normal.LDA, newdata = TestData)$class)
   
   #--- Compute compressLDA labels ----
   TrainData <- as.matrix(TrainData[,c(1:10)])
@@ -205,8 +204,8 @@ test_that("checking that projectPredict equals LDA when compression matrix is id
                               m2 = n2,
                               s = 0.01,
                               gamma = 0)
-  leaf17.lda <- MASS::lda(arch ~ logwid+loglen, data = leafshape17)
-  MASSclass <- as.numeric(predict(leaf17.lda)$class)
+  leaf17.LDA <- MASS::lda(arch ~ logwid+loglen, data = leafshape17)
+  MASSclass <- as.numeric(predict(leaf17.LDA)$class)
   expect_equal(MASSclass, ProjClass)
 })
 
@@ -295,7 +294,7 @@ test_that("Testing if if formDiscrimVector gives scaling of MASS discriminant Ve
   TestCat <- c(rep(1, n1/10), rep(2, n2/10))
   
   Dvec <- formDiscrimVector(TrainData, TrainCat, gamma = 0)
-  MASSDvec <- normal.lda <- MASS::lda(TrainCat ~ TrainData)$scaling
+  MASSDvec <- normal.LDA <- MASS::lda(TrainCat ~ TrainData)$scaling
   
   expect_equal(as.numeric(Dvec/as.numeric(MASSDvec)) , rep(Dvec[1]/as.numeric(MASSDvec[1]), p ),tolerance = 1e-10)
 })
@@ -347,8 +346,8 @@ subsampleClasses function to generate data. Large normal data.", {
     colnames(TestData) <- c("1","2","3","4","5","6","7","8","9","10")
     
     #--- Compute MASS Labels ---
-    normal.lda <- MASS::lda(Class ~ . , data = subData)
-    MASSclass <- as.numeric(predict(object = normal.lda, newdata = TestData)$class)
+    normal.LDA <- MASS::lda(Class ~ . , data = subData)
+    MASSclass <- as.numeric(predict(object = normal.LDA, newdata = TestData)$class)
     
     #--- Compute compressLDA labels ----
     subData <- as.matrix(subData[,c(1:10)])

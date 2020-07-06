@@ -2,11 +2,11 @@
 
 export(Classify)
 export(KOS)
+export(LDA)
+export(QDA)
 export(SelectParams)
 export(compressPredict)
-export(lda)
 export(projectPredict)
-export(qda)
 export(subsetPredict)
 importFrom(Rcpp,evalCpp)
 importFrom(stats,cov)

@@ -53,7 +53,7 @@ This data set has $n= 10,000$ training samples with $p=10$ features. It is norma
 
 Let us use compressed LDA to predict the test data labels.
 ```{r}
-test_pred <- lda(TrainData = LDA_Data$TrainData,
+test_pred <- LDA(TrainData = LDA_Data$TrainData,
                  TrainCat = LDA_Data$TrainCat,
                  TestData = LDA_Data$TestData,
                  Method = "Compressed")
@@ -76,9 +76,9 @@ plot(QDA_Data$TrainData[,2]~QDA_Data$TrainData[,1],
      main = "Scatter Plot of QDA Training Data")
 ```
 
-A modification of Quadratic Discriminant Analysis is well-suited to such data. The package comes with a function \texttt{qda} for such purposes.
+A modification of Quadratic Discriminant Analysis is well-suited to such data. The package comes with a function \texttt{QDA} for such purposes.
 ```{r}
-test_pred <- qda(TrainData = QDA_Data$TrainData,
+test_pred <- QDA(TrainData = QDA_Data$TrainData,
                  TrainCat = QDA_Data$TrainCat,
                  TestData = QDA_Data$TestData,
                  Method = "Compressed")
@@ -109,7 +109,7 @@ plot(KOS_Data$TrainData[,4]~KOS_Data$TrainData[,3], col = c("orange","blue")[KOS
      main = "Noise Features")
 par(mfrow = c(1,1))
 ```
-For this data set, neither lda or qda would suffice. The function \texttt{KOS} is the sparse kernel optimal scoring algorithm presented in Lapanowski, and Gaynanova (2019). It is particularly well-suited to such problems, as can be seen from the following.
+For this data set, neither LDA or QDA would suffice. The function \texttt{KOS} is the sparse kernel optimal scoring algorithm presented in Lapanowski, and Gaynanova (2019). It is particularly well-suited to such problems, as can be seen from the following.
 
 ```{r, fig.height=4, fig.width=5, fig.align = "center"}
 output <- KOS(TrainData = KOS_Data$TrainData, 
@@ -141,7 +141,7 @@ This section provides a more in-depth treatment to the Linear Discriminant metho
 
 
 
-There are five seperate linear discriminant methods avilable through the \texttt{lda} wrapper function:
+There are five seperate linear discriminant methods avilable through the \texttt{LDA} wrapper function:
 \begin{enumerate}
 \item \texttt{Full} Linear Discriminant Analsysis, which is LDA trained on the full data
 [Cite Mardia or Elements of Stat. Learning].
@@ -165,7 +165,7 @@ This method is the result of setting \texttt{Method} equal to \texttt{"Full"}.
 This method is traditional Linear Discriminant Analysis, as presented in [Citation]. No additional parameters need to be supplied, and the code will run as stated.
 
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData)
+test_pred <- LDA(TrainData, TrainCat, TestData)
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -187,7 +187,7 @@ Compressed LDA requires the parameters \texttt{m1}, \texttt{m2}, \texttt{s}.
 
 The easiest way to run Compressed LDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Automatic")
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Automatic")
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -195,7 +195,7 @@ mean(test_pred != TestCat)
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "Compressed")
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Compressed")
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -204,7 +204,7 @@ and obtain the same output.
 
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the compression amounts $m_1$, $m_2$, and sparsity level $s$ to be used in compression. The user will type in the amounts:
 ```{r, eval=FALSE}
-output <- lda(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Interactive")
+output <- LDA(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Interactive")
 "Please enter the number m1 of group 1 compression samples: "700
 "Please enter the number m2 of group 2 compression samples: "300
 "Please enter sparsity level s used in compression: "0.01
@@ -212,10 +212,10 @@ output <- lda(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Inte
 and the output is produced. 
 
 
-If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{lda} function all parameters. 
+If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{LDA} function all parameters. 
 
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "Compressed", 
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Compressed", 
               Mode = "Research", m1 = 700, m2 = 300, s = 0.01)
 
 table(test_pred)
@@ -233,14 +233,14 @@ To run sub-sampled LDA, set \texttt{Method} equal to \texttt{Subsampled}. It req
 
 The easiest way to run Compressed LDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Automatic")
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Automatic")
 table(test_pred)
 ```
 
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "Subsampled")
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Subsampled")
 table(test_pred)
 ```
 and obtain the same output.
@@ -248,7 +248,7 @@ and obtain the same output.
  
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the sub-sample amounts $m_1$, $m_2$ for each group to be used. The user will type in the amounts:
 ```{r, eval=FALSE}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Interactive")
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Interactive")
 "Please enter the number m1 of group 1 sub-samples: "700
 "Please enter the number m2 of group 2 sub-samples: "300
 ```
@@ -256,10 +256,10 @@ and the output is produced.
 
 
 
-If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{lda} function all parameters. 
+If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{LDA} function all parameters. 
 
 ```{r}
-output <- lda(TrainData, TrainCat, TestData, Method = "Subsampled", 
+output <- LDA(TrainData, TrainCat, TestData, Method = "Subsampled", 
               Mode = "Research", m1 = 700, m2 = 300)
 
 table(output)
@@ -279,7 +279,7 @@ Projected LDA requires the parameters \texttt{m1}, \texttt{m2}, \texttt{s}.
 
 The easiest way to run Projected LDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-output <- lda(TrainData, TrainCat, TestData, Method = "Projected", Mode = "Automatic")
+output <- LDA(TrainData, TrainCat, TestData, Method = "Projected", Mode = "Automatic")
 table(output)
 mean(output != TestCat)
 ```
@@ -287,7 +287,7 @@ mean(output != TestCat)
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-output <- lda(TrainData, TrainCat, TestData, Method = "Projected")
+output <- LDA(TrainData, TrainCat, TestData, Method = "Projected")
 table(output)
 mean(output != TestCat)
 ```
@@ -296,7 +296,7 @@ and obtain the same output.
 
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the compression amounts $m_1$, $m_2$, and sparsity level $s$ to be used in compression. The user will type in the amounts:
 ```{r, eval=FALSE}
-output <- lda(TrainData, TrainCat, TestData, Method = "Projected", Mode = "Interactive")
+output <- LDA(TrainData, TrainCat, TestData, Method = "Projected", Mode = "Interactive")
 "Please enter the number m1 of group 1 compression samples: "700
 "Please enter the number m2 of group 2 compression samples: "300
 "Please enter sparsity level s used in compression: "0.01
@@ -305,10 +305,10 @@ output <- lda(TrainData, TrainCat, TestData, Method = "Projected", Mode = "Inter
 and the output is produced. 
 
 
-If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{lda} function all parameters. 
+If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{LDA} function all parameters. 
 
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "Projected", 
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Projected", 
               Mode = "Research", m1 = 700, m2 = 300, s = 0.01)
 
 table(test_pred)
@@ -331,7 +331,7 @@ Fast Random Fisher requires the parameters \texttt{m}, and \texttt{s}.
 
 The easiest way to run Fast Random Fisher is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "fastRandomFisher", Mode = "Automatic")
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "fastRandomFisher", Mode = "Automatic")
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -339,7 +339,7 @@ mean(test_pred != TestCat)
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "fastRandomFisher")
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "fastRandomFisher")
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -349,17 +349,17 @@ and obtain the same output.
 
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the total amount of compressed samples $m$ and sparsity level $s$ to be used in compression. The user will type in the amounts:
 ```{r, eval=FALSE}
-output <- lda(TrainData, TrainCat, TestData, Method = "fastRandomFisher", Mode = "Interactive")
+output <- LDA(TrainData, TrainCat, TestData, Method = "fastRandomFisher", Mode = "Interactive")
 "Please enter the number m of total compressed samples: "1000
 "Please enter sparsity level s used in compression: "0.01
 ```
 and the output is produced. 
 
 
-If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{lda} function all parameters. 
+If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{LDA} function all parameters. 
 
 ```{r}
-test_pred <- lda(TrainData, TrainCat, TestData, Method = "fastRandomFisher", 
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "fastRandomFisher", 
               Mode = "Research", m = 1000, s = 0.01)
 
 table(test_pred)
@@ -374,7 +374,7 @@ WARNING: The argument \texttt{Mode} will override any supplied parameters if its
 \section{Quadratic Discriminant Analysis}
 This section provides a more in-depth treatment to the Linear Discriminant methods available in \texttt{biClassify}.
 
-There are three seperate quadratic discriminant methods avilable through the \texttt{qda} wrapper function:
+There are three seperate quadratic discriminant methods avilable through the \texttt{QDA} wrapper function:
 \begin{enumerate}
 \item \texttt{Full} Quadratic Discriminant Analsysis, which is QDA trained on the full data
 [Cite Mardia or Elements of Stat. Learning].
@@ -394,10 +394,10 @@ TestCat <- QDA_Data$TestCat
 
 \subsection{Full QDA}
 This method is the result of setting \texttt{Method} equal to \texttt{"Full"}.
-This method is traditional Quadratic Discriminant Analysis, as presented in [Citation]. No additional parameters need to be supplied, and the code will run as stated. Unlike the \texttt{lda} function, only the class predictions are produced:
+This method is traditional Quadratic Discriminant Analysis, as presented in [Citation]. No additional parameters need to be supplied, and the code will run as stated. Unlike the \texttt{LDA} function, only the class predictions are produced:
 
 ```{r}
-Predictions <- qda(TrainData, TrainCat, TestData, Method = "Full")
+Predictions <- QDA(TrainData, TrainCat, TestData, Method = "Full")
 table(Predictions)
 ```
 
@@ -409,14 +409,14 @@ Compressed QDA requires the parameters \texttt{m1}, \texttt{m2}, \texttt{s}.
 
 The easiest way to run Compressed QDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-output <- qda(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Automatic")
+output <- QDA(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Automatic")
 table(output)
 ```
 
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-output <- qda(TrainData, TrainCat, TestData, Method = "Compressed")
+output <- QDA(TrainData, TrainCat, TestData, Method = "Compressed")
 table(output)
 ```
 and obtain the same output.
@@ -425,7 +425,7 @@ and obtain the same output.
 
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the compression amounts $m_1$, $m_2$, and sparsity level $s$ to be used in compression. The user will type in the amounts:
 ```{r, eval=FALSE}
-output <- qda(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Interactive")
+output <- QDA(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Interactive")
 "Please enter the number m1 of group 1 compression samples: "700
 "Please enter the number m2 of group 2 compression samples: "300
 "Please enter sparsity level s used in compression: "0.01
@@ -435,10 +435,10 @@ table(output)
 and the output is produced. 
 
 
-If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{qda} function all parameters. 
+If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{QDA} function all parameters. 
 
 ```{r}
-output <- qda(TrainData, TrainCat, TestData, Method = "Compressed", 
+output <- QDA(TrainData, TrainCat, TestData, Method = "Compressed", 
               Mode = "Research", m1 = 700, m2 = 300, s = 0.01)
 
 summary(output)
@@ -452,14 +452,14 @@ It requires the additional parameters \texttt{m1} and \texttt{m2}.
 
 The easiest way to run sub-sampled QDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-output <- qda(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Automatic")
+output <- QDA(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Automatic")
 table(output)
 ```
 
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-output <- qda(TrainData, TrainCat, TestData, Method = "Subsampled")
+output <- QDA(TrainData, TrainCat, TestData, Method = "Subsampled")
 summary(output)
 ```
 and obtain the same output.
@@ -467,7 +467,7 @@ and obtain the same output.
 
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the sub-sample amounts $m_1$, $m_2$ for each group to be used. The user will type in the amounts:
 ```{r, eval=FALSE}
-output <- qda(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Interactive")
+output <- QDA(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Interactive")
 "Please enter the number m1 of group 1 sub-samples: "700
 "Please enter the number m2 of group 2 sub-samples: "300
 
@@ -477,10 +477,10 @@ and the output is produced.
 
 
 
-If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{qda} function all parameters. 
+If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{QDA} function all parameters. 
 
 ```{r}
-output <- qda(TrainData, TrainCat, TestData, Method = "Subsampled", 
+output <- QDA(TrainData, TrainCat, TestData, Method = "Subsampled", 
               Mode = "Research", m1 = 700, m2 = 300)
 
 summary(output)

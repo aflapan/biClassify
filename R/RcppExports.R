@@ -9,6 +9,10 @@ SoftThreshCPP <- function(x, lambda) {
     .Call('_biClassify_SoftThreshCPP', PACKAGE = 'biClassify', x, lambda)
 }
 
+KernelCPP <- function(x, TrainData, Sigma) {
+    .Call('_biClassify_KernelCPP', PACKAGE = 'biClassify', x, TrainData, Sigma)
+}
+
 CoordDesCPP <- function(w0, Q, beta, Lambda, Epsilon, Maxniter = 1.0e7) {
     .Call('_biClassify_CoordDesCPP', PACKAGE = 'biClassify', w0, Q, beta, Lambda, Epsilon, Maxniter)
 }
@@ -27,5 +31,17 @@ TMatCPP <- function(Data, A, w0, sigmaTm) {
 
 ObjectiveFuncCPP <- function(w, KwOF, Data, DVectors, YTheta, LambdaOF, GammaOF, EpsilonOF = 1e-5) {
     .Call('_biClassify_ObjectiveFuncCPP', PACKAGE = 'biClassify', w, KwOF, Data, DVectors, YTheta, LambdaOF, GammaOF, EpsilonOF)
+}
+
+LambdaSeqCpp <- function(from, to, length) {
+    .Call('_biClassify_LambdaSeqCpp', PACKAGE = 'biClassify', from, to, length)
+}
+
+LassoCVCpp <- function(TrainData, TrainCat, B, Sigma, Gamma, Epsilon = 1E-5) {
+    .Call('_biClassify_LassoCVCpp', PACKAGE = 'biClassify', TrainData, TrainCat, B, Sigma, Gamma, Epsilon)
+}
+
+GetProjectionsCPP <- function(TrainData, TrainCat, TestData, Dvec, w, Kw, Sigma, Gamma) {
+    .Call('_biClassify_GetProjectionsCPP', PACKAGE = 'biClassify', TrainData, TrainCat, TestData, Dvec, w, Kw, Sigma, Gamma)
 }
 

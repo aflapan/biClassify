@@ -29,6 +29,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// KernelCPP
+arma::Col<double> KernelCPP(arma::Row<double> x, arma::Mat<double> TrainData, double Sigma);
+RcppExport SEXP _biClassify_KernelCPP(SEXP xSEXP, SEXP TrainDataSEXP, SEXP SigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::Row<double> >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type TrainData(TrainDataSEXP);
+    Rcpp::traits::input_parameter< double >::type Sigma(SigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(KernelCPP(x, TrainData, Sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
 // CoordDesCPP
 arma::Col<double> CoordDesCPP(arma::Col<double> w0, arma::Mat<double> Q, arma::Col<double> beta, double Lambda, double Epsilon, int Maxniter);
 RcppExport SEXP _biClassify_CoordDesCPP(SEXP w0SEXP, SEXP QSEXP, SEXP betaSEXP, SEXP LambdaSEXP, SEXP EpsilonSEXP, SEXP MaxniterSEXP) {
@@ -105,15 +118,66 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// LambdaSeqCpp
+arma::Col<double> LambdaSeqCpp(double from, double to, double length);
+RcppExport SEXP _biClassify_LambdaSeqCpp(SEXP fromSEXP, SEXP toSEXP, SEXP lengthSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type from(fromSEXP);
+    Rcpp::traits::input_parameter< double >::type to(toSEXP);
+    Rcpp::traits::input_parameter< double >::type length(lengthSEXP);
+    rcpp_result_gen = Rcpp::wrap(LambdaSeqCpp(from, to, length));
+    return rcpp_result_gen;
+END_RCPP
+}
+// LassoCVCpp
+double LassoCVCpp(arma::Mat<double> TrainData, arma::Col<int> TrainCat, arma::Col<double> B, double Sigma, double Gamma, double Epsilon);
+RcppExport SEXP _biClassify_LassoCVCpp(SEXP TrainDataSEXP, SEXP TrainCatSEXP, SEXP BSEXP, SEXP SigmaSEXP, SEXP GammaSEXP, SEXP EpsilonSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type TrainData(TrainDataSEXP);
+    Rcpp::traits::input_parameter< arma::Col<int> >::type TrainCat(TrainCatSEXP);
+    Rcpp::traits::input_parameter< arma::Col<double> >::type B(BSEXP);
+    Rcpp::traits::input_parameter< double >::type Sigma(SigmaSEXP);
+    Rcpp::traits::input_parameter< double >::type Gamma(GammaSEXP);
+    Rcpp::traits::input_parameter< double >::type Epsilon(EpsilonSEXP);
+    rcpp_result_gen = Rcpp::wrap(LassoCVCpp(TrainData, TrainCat, B, Sigma, Gamma, Epsilon));
+    return rcpp_result_gen;
+END_RCPP
+}
+// GetProjectionsCPP
+arma::Col<double> GetProjectionsCPP(arma::Mat<double> TrainData, arma::Col<int> TrainCat, arma::Mat<double> TestData, arma::Col<double> Dvec, arma::Col<double> w, arma::Mat<double> Kw, double Sigma, double Gamma);
+RcppExport SEXP _biClassify_GetProjectionsCPP(SEXP TrainDataSEXP, SEXP TrainCatSEXP, SEXP TestDataSEXP, SEXP DvecSEXP, SEXP wSEXP, SEXP KwSEXP, SEXP SigmaSEXP, SEXP GammaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type TrainData(TrainDataSEXP);
+    Rcpp::traits::input_parameter< arma::Col<int> >::type TrainCat(TrainCatSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type TestData(TestDataSEXP);
+    Rcpp::traits::input_parameter< arma::Col<double> >::type Dvec(DvecSEXP);
+    Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type Kw(KwSEXP);
+    Rcpp::traits::input_parameter< double >::type Sigma(SigmaSEXP);
+    Rcpp::traits::input_parameter< double >::type Gamma(GammaSEXP);
+    rcpp_result_gen = Rcpp::wrap(GetProjectionsCPP(TrainData, TrainCat, TestData, Dvec, w, Kw, Sigma, Gamma));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_biClassify_signCPP", (DL_FUNC) &_biClassify_signCPP, 1},
     {"_biClassify_SoftThreshCPP", (DL_FUNC) &_biClassify_SoftThreshCPP, 2},
+    {"_biClassify_KernelCPP", (DL_FUNC) &_biClassify_KernelCPP, 3},
     {"_biClassify_CoordDesCPP", (DL_FUNC) &_biClassify_CoordDesCPP, 6},
     {"_biClassify_SolveKOSCPP", (DL_FUNC) &_biClassify_SolveKOSCPP, 4},
     {"_biClassify_DerivCPP", (DL_FUNC) &_biClassify_DerivCPP, 4},
     {"_biClassify_TMatCPP", (DL_FUNC) &_biClassify_TMatCPP, 4},
     {"_biClassify_ObjectiveFuncCPP", (DL_FUNC) &_biClassify_ObjectiveFuncCPP, 8},
+    {"_biClassify_LambdaSeqCpp", (DL_FUNC) &_biClassify_LambdaSeqCpp, 3},
+    {"_biClassify_LassoCVCpp", (DL_FUNC) &_biClassify_LassoCVCpp, 6},
+    {"_biClassify_GetProjectionsCPP", (DL_FUNC) &_biClassify_GetProjectionsCPP, 8},
     {NULL, NULL, 0}
 };
 

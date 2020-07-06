@@ -1,7 +1,10 @@
 KOS_Classify <- function(TestData, TrainData, TrainCat, Sigma = NULL, Gamma = NULL , Lambda = NULL){
   if(ncol(TestData) != ncol(TrainData)) stop("Number of features in X and TrainData are different.")
   if( is.null(Sigma) || is.null(Gamma) || is.null(Lambda)){
-    output <- SelectParams(TrainData, TrainCat)
+    output <- SelectParams(TrainData = TrainData, 
+                           TrainCat = TrainCat,
+                           Sigma = Sigma,
+                           Gamma = Gamma)
     Sigma <- output$Sigma
     Gamma <- output$Gamma
     Lambda <- output$Lambda
@@ -60,7 +63,7 @@ KOS_Classify <- function(TestData, TrainData, TrainCat, Sigma = NULL, Gamma = NU
   Predictions <- stats::predict(object = LDAfit, newdata = NewProjections)$class
   
   return(list(Predictions = Predictions, 
-              Weight = w, 
+              Weights = w, 
               Dvec = Dvec))
 }
 
@@ -134,12 +137,12 @@ KOS <- function(TestData = NULL, TrainData, TrainCat, Sigma = NULL, Gamma = NULL
     Lambda <- output$Lambda
   }
   
-  output <- SparseKernOptScore(TrainData, 
-                               TrainCat, 
-                               rep(1, ncol(TrainData)), 
-                               Lambda, 
-                               Gamma, 
-                               Sigma)
+  output <- SparseKernOptScore(TrainData = TrainData, 
+                               TrainCat = TrainCat, 
+                               w0 = rep(1, ncol(TrainData)), 
+                               Sigma = Sigma,
+                               Gamma = Gamma, 
+                               Lambda = Lambda)
   w <- output$Weights
   Dvec <- output$Dvec
   
@@ -147,12 +150,12 @@ KOS <- function(TestData = NULL, TrainData, TrainCat, Sigma = NULL, Gamma = NULL
     return(list(Weights = w, Dvec = Dvec))
   }
   else{
-    Predict <- KOS_Classify(TestData, 
-                            TrainData, 
-                            TrainCat, 
-                            Sigma, 
-                            Gamma, 
-                            Lambda)
+    Predict <- KOS_Classify(TestData = TestData, 
+                            TrainData = TrainData, 
+                            TrainCat = TrainCat, 
+                            Sigma = Sigma, 
+                            Gamma = Gamma, 
+                            Lambda = Lambda)
     return(Predict)
   }
 }

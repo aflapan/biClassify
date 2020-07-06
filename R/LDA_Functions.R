@@ -154,8 +154,8 @@ formDiscrimVector <- function(TrainData, TrainCat, W = NULL, gamma = 1E-5){
     W <- W + gamma * diag(ncol(TrainData))
   }
   
-  TrainX1 <- TrainData[ TrainCat == 1, ]
-  TrainX2 <- TrainData[ TrainCat == 2, ]
+  TrainX1 <- as.matrix(TrainData[ TrainCat == 1, ])
+  TrainX2 <- as.matrix(TrainData[ TrainCat == 2, ])
   
   # --- Form difference of group means vector d ---
   Means1 <- colMeans(TrainX1)
@@ -542,7 +542,7 @@ testParameters <- function(m1,m2,s){
 #' plot(TrainData[,2]~TrainData[,1], col = c("blue","orange")[as.factor(TrainCat)])
 #' 
 #' #----- Full LDA -------
-#' lda(TrainData = TrainData,
+#' LDA(TrainData = TrainData,
 #'     TrainCat = TrainCat,
 #'     TestData = TestData,
 #'     Method = "Full",
@@ -552,7 +552,7 @@ testParameters <- function(m1,m2,s){
 #'  m1 <- 700
 #'  m2 <- 300
 #'  s <- 0.01
-#'  lda(TrainData = TrainData,
+#'  LDA(TrainData = TrainData,
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Compressed",
@@ -562,7 +562,7 @@ testParameters <- function(m1,m2,s){
 #'      s = s,
 #'      gamma = 1E-5)
 #'      
-#'  lda(TrainData = TrainData,
+#'  LDA(TrainData = TrainData,
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Compressed",
@@ -572,7 +572,7 @@ testParameters <- function(m1,m2,s){
 #'  #----- Sub-sampled LDA ------
 #'  m1 <- 700
 #'  m2 <- 300
-#'  lda(TrainData = TrainData,
+#'  LDA(TrainData = TrainData,
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Subsampled",
@@ -581,7 +581,7 @@ testParameters <- function(m1,m2,s){
 #'      m2 = m2,
 #'      gamma = 1E-5)
 #'  
-#'   lda(TrainData = TrainData,
+#'   LDA(TrainData = TrainData,
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Subsampled",
@@ -592,7 +592,7 @@ testParameters <- function(m1,m2,s){
 #'   m1 <- 700
 #'   m2 <- 300
 #'   s <- 0.01
-#'   lda(TrainData = TrainData,
+#'   LDA(TrainData = TrainData,
 #'       TrainCat = TrainCat,
 #'       TestData = TestData,
 #'       Method = "Projected",
@@ -602,7 +602,7 @@ testParameters <- function(m1,m2,s){
 #'       s = s,
 #'       gamma = 1E-5)
 #'       
-#'    lda(TrainData = TrainData,
+#'    LDA(TrainData = TrainData,
 #'       TrainCat = TrainCat,
 #'       TestData = TestData,
 #'       Method = "Projected",
@@ -612,7 +612,7 @@ testParameters <- function(m1,m2,s){
 #'  #----- Fast Random Fisher ------    
 #'   m <- 1000 
 #'   s <- 0.01
-#'   lda(TrainData = TrainData,
+#'   LDA(TrainData = TrainData,
 #'       TrainCat = TrainCat,
 #'       TestData = TestData,
 #'       Method = "fastRandomFisher",
@@ -621,7 +621,7 @@ testParameters <- function(m1,m2,s){
 #'       s = s,
 #'       gamma = 1E-5)
 #'       
-#'    lda(TrainData = TrainData,
+#'    LDA(TrainData = TrainData,
 #'       TrainCat = TrainCat,
 #'       TestData = TestData,
 #'       Method = "fastRandomFisher",
@@ -631,7 +631,7 @@ testParameters <- function(m1,m2,s){
 #' \item{Predictions}{(m x 1) Vector of predicted class labels for the data points in \code{TestData}.}  
 #' \item{Dvec}{ (p x 1) Discriminant vector.}
 #' @export
-lda <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic", m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1E-5, type = "Rademacher"){
+LDA <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic", m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1E-5, type = "Rademacher"){
   if(Mode == "Automatic"){
     m1 <- sum(TrainCat == 1)/10
     m2 <- sum(TrainCat == 2)/10

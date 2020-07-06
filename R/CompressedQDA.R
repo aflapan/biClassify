@@ -124,7 +124,7 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #' plot(TrainData[,2]~TrainData[,1], col = c("blue","orange")[as.factor(TrainCat)])
 #' 
 #' #----- Full QDA -------
-#' qda(TrainData = TrainData,
+#' QDA(TrainData = TrainData,
 #'     TrainCat = TrainCat,
 #'     TestData = TestData,
 #'     Method = "Full",
@@ -134,7 +134,7 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #'  m1 <- 700
 #'  m2 <- 300
 #'  s <- 0.01
-#'  qda(TrainData = TrainData,
+#'  QDA(TrainData = TrainData,
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Compressed",
@@ -144,7 +144,7 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #'      s = s,
 #'      gamma = 1E-5)
 #'      
-#'  qda(TrainData = TrainData,
+#'  QDA(TrainData = TrainData,
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Compressed",
@@ -154,7 +154,7 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #'  #----- Sub-sampled QDA ------
 #'  m1 <- 700
 #'  m2 <- 300
-#'  qda(TrainData = TrainData,
+#'  QDA(TrainData = TrainData,
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Subsampled",
@@ -163,7 +163,7 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #'      m2 = m2,
 #'      gamma = 1E-5)
 #'      
-#'  qda(TrainData = TrainData,
+#'  QDA(TrainData = TrainData,
 #'      TrainCat = TrainCat,
 #'      TestData = TestData,
 #'      Method = "Subsampled",
@@ -172,7 +172,7 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #'      
 #' @return \item{Predictions}{(m x 1) Vector of predicted class labels for the data points in \code{TestData}.}  
 #' @export
-qda <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic", m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1E-5){
+QDA <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic", m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1E-5){
   if(Mode == "Automatic"){
     m1 <- sum(TrainCat == 1)/10
     m2 <- sum(TrainCat == 2)/10
