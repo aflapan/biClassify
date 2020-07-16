@@ -122,7 +122,7 @@ GetProjection <- function(x, Data, Cat, Q1, Q2, DVec, Kcomp , Sigma){
 }
 
 #---- Nystrom Implementation -----
-
+#' @importFrom expm sqrtm
 # Returns the n x m matrix and m x m sub-sampled matrix
 NystromMat <- function(Data, m, Sigma){
   n <- nrow(Data)
@@ -131,14 +131,14 @@ NystromMat <- function(Data, m, Sigma){
   Km <- KernelMat(TrainData = SubSample, Sigma = Sigma)
   Km <- MASS::ginv(Km)
   Km <- expm::sqrtm(Km)
-  Rectangle <- matrix(0, nrow = n, ncol =m)
+  Rectangle <- matrix(0, nrow = n, ncol = m)
   for(i in 1:m){
     Rectangle[,i] <- Kernel(x = SubSample[i,], TrainData = Data, Sigma = Sigma)
   }
   return(list(Rectangle , Km))
 }
 
-
+#' @importFrom MASS ginv
 NystromKOS <- function(TrainData, TrainCat, m, gamma, Sigma){
   #Generate One-hot encoding matrix and optimal scores
   Y <- IndicatMat(TrainCat)$Categorical

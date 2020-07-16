@@ -1,4 +1,5 @@
 library(datasets)
+library(DAAG)
 library(mvtnorm)
 
 

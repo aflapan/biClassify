@@ -78,13 +78,12 @@ arma::Col<double> CoordDesCPP(arma::Col<double> w0, arma::Mat<double> Q, arma::C
 
 
 // [[Rcpp::export]]
-arma::Col<double> SolveKOSCPP(arma::Mat<double> YTheta,arma::Mat<double> K,double Gamma,double Epsilon=1e-5){
+arma::Col<double> SolveKOSCPP(arma::Mat<double> YTheta, arma::Mat<double> K,double Gamma){
+   //Assumes K is doubly-centered!
    int n = K.n_rows;
-   arma::Mat<double> C=arma::eye(n,n)-(1/n)*arma::ones(n,n); //Create column-centering matrix
-   arma::Mat<double> M=(C*K)*C; // This doubly-centered kernel matrix appears often. Compute it once to save time
-   arma::Mat<double> Mat=(M*M+ n*Gamma*(M+Epsilon*arma::diagmat(arma::ones(n)))); //Add the epsilon*I term for stability
-   arma::Mat<double> A=M*YTheta;
-   arma::Col<double> Dvec=arma::solve(Mat,A);
+   //Solve for ridge solution. 
+   arma::Mat<double> Mat = K+ n*Gamma*arma::diagmat(arma::ones(n)); //Add the n*Gamma*I term for ridge penalty
+   arma::Col<double> Dvec = solve(Mat,YTheta);
    return(Dvec);
  }
 
@@ -104,24 +103,22 @@ arma::Mat<double> DerivCPP(arma::Row<double> x, arma::Mat<double> Data, arma::Co
 arma::Mat<double> TMatCPP(arma::Mat<double> Data, arma::Col<double> A, arma::Col<double> w0, double sigmaTm){
   int p = Data.n_cols;
   int n = A.n_rows;
-  arma::Mat<double> C=arma::eye(n,n)-(1/n)*arma::ones(n,n);
+  arma::Mat<double> C = arma::eye(n,n)-(1/n)*arma::ones(n,n);
   A = C*A;
   arma::Mat<double> T=arma::zeros(n,p);
   for(int j=0; j<n; j++){
     T.row(j)=A.t()*DerivCPP(Data.row(j),Data,w0,sigmaTm);
   }
-  T=C*T;
+  T = C*T;
   return(T);
 }
 
 // [[Rcpp::export]]
-double ObjectiveFuncCPP(arma::Col<double> w, arma::Mat<double> KwOF, arma::Mat<double> Data, arma::Col<double> DVectors, arma::Mat<double> YTheta, double LambdaOF, double GammaOF, double EpsilonOF=1e-5){
-  int n = KwOF.n_rows;
-  arma::Mat<double> C=arma::eye(n,n)-(1/n)*arma::ones(n,n);
-  arma::Mat<double> M=C*(KwOF*C); //Form the doubly-centered kernel matrix.
-  double Regression = (1/n)*accu(square(YTheta-(M*DVectors))); //Least Squares component
+double ObjectiveFuncCPP(arma::Col<double> w, arma::Mat<double> Kw, arma::Mat<double> Data, arma::Col<double> DVectors, arma::Mat<double> YTheta, double LambdaOF, double GammaOF, double EpsilonOF=1e-5){
+  int n = Kw.n_rows;
+  double Regression = (1/n)*accu(square(YTheta-(Kw*DVectors))); //Least Squares component
   double LASSO = LambdaOF*sum(abs(w)); //LASSO Component
-  arma::Mat<double> RidgeMat=DVectors.t()*(M*DVectors+EpsilonOF*DVectors);
+  arma::Mat<double> RidgeMat=DVectors.t()*(Kw*DVectors+EpsilonOF*DVectors);
   double Ridge = GammaOF*accu(arma::diagmat(RidgeMat)); //Ridge component
   return(Regression+LASSO+Ridge); //The sum of all three gives the objective function
 }
@@ -137,22 +134,6 @@ arma::Col<double> LambdaSeqCpp(double from, double to, double length){
 }
 
 
-// [[Rcpp::export]]
-double LassoCVCpp(arma::Mat<double> TrainData, arma::Col<int> TrainCat, arma::Col<double> B, double Sigma, double Gamma, double Epsilon = 1E-5){
-  // Generate Lambda Values
-  double c = 2 * max(abs(B));
-  arma::Col<double> LambdaSeq = LambdaSeqCpp(pow(10, -10)*c, c, 20);
-  
-  int n = TrainData.n_rows;
-  int p = TrainData.n_cols;
-  arma::Col<double> w = arma::ones(p);
-  arma::Col<double> Errors = arma::ones(20);
-  
-  //Create Folds for Cross-validation
-  n = n-1;
-  n = n+1;
-  return(0);
-}
 
 // [[Rcpp::export]]
 arma::Col<double> GetProjectionsCPP(arma::Mat<double> TrainData, arma::Col<int> TrainCat, arma::Mat<double> TestData, arma::Col<double> Dvec, arma::Col<double> w, arma::Mat<double> Kw, double Sigma, double Gamma){

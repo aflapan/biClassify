@@ -17,8 +17,8 @@ CoordDesCPP <- function(w0, Q, beta, Lambda, Epsilon, Maxniter = 1.0e7) {
     .Call('_biClassify_CoordDesCPP', PACKAGE = 'biClassify', w0, Q, beta, Lambda, Epsilon, Maxniter)
 }
 
-SolveKOSCPP <- function(YTheta, K, Gamma, Epsilon = 1e-5) {
-    .Call('_biClassify_SolveKOSCPP', PACKAGE = 'biClassify', YTheta, K, Gamma, Epsilon)
+SolveKOSCPP <- function(YTheta, K, Gamma) {
+    .Call('_biClassify_SolveKOSCPP', PACKAGE = 'biClassify', YTheta, K, Gamma)
 }
 
 DerivCPP <- function(x, Data, w0, sigmaD) {
@@ -29,16 +29,12 @@ TMatCPP <- function(Data, A, w0, sigmaTm) {
     .Call('_biClassify_TMatCPP', PACKAGE = 'biClassify', Data, A, w0, sigmaTm)
 }
 
-ObjectiveFuncCPP <- function(w, KwOF, Data, DVectors, YTheta, LambdaOF, GammaOF, EpsilonOF = 1e-5) {
-    .Call('_biClassify_ObjectiveFuncCPP', PACKAGE = 'biClassify', w, KwOF, Data, DVectors, YTheta, LambdaOF, GammaOF, EpsilonOF)
+ObjectiveFuncCPP <- function(w, Kw, Data, DVectors, YTheta, LambdaOF, GammaOF, EpsilonOF = 1e-5) {
+    .Call('_biClassify_ObjectiveFuncCPP', PACKAGE = 'biClassify', w, Kw, Data, DVectors, YTheta, LambdaOF, GammaOF, EpsilonOF)
 }
 
 LambdaSeqCpp <- function(from, to, length) {
     .Call('_biClassify_LambdaSeqCpp', PACKAGE = 'biClassify', from, to, length)
-}
-
-LassoCVCpp <- function(TrainData, TrainCat, B, Sigma, Gamma, Epsilon = 1E-5) {
-    .Call('_biClassify_LassoCVCpp', PACKAGE = 'biClassify', TrainData, TrainCat, B, Sigma, Gamma, Epsilon)
 }
 
 GetProjectionsCPP <- function(TrainData, TrainCat, TestData, Dvec, w, Kw, Sigma, Gamma) {

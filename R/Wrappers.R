@@ -30,7 +30,7 @@ KOS_Classify <- function(TestData, TrainData, TrainCat, Sigma = NULL, Gamma = NU
   Kw <- KwMat(TrainData , w, Sigma)
   
   # Create projection Values
-  TrainProjections <- GetProjections(TestData = TrainData, 
+  TrainProjections <- GetProjectionsCPP(TestData = TrainData, 
                                     TrainData = TrainData, 
                                     TrainCat = TrainCat, 
                                     Dvec = Dvec, 
@@ -40,7 +40,7 @@ KOS_Classify <- function(TestData, TrainData, TrainCat, Sigma = NULL, Gamma = NU
                                     Gamma = Gamma)
   
   ### Need test projection values for LDA
-  NewProjections <- GetProjections(TestData = TestData, 
+  NewProjections <- GetProjectionsCPP(TestData = TestData, 
                                   TrainData = TrainData, 
                                   TrainCat = TrainCat, 
                                   Dvec = Dvec,  

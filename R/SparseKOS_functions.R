@@ -1,4 +1,3 @@
-
 ## Forms Categorical Response Matrix and Diagonal group proportion matrix. Each row
 ## consists of 0s and a single 1.  The 1 is in the column corresponding to the group
 ## data point i belongs to.
@@ -70,6 +69,12 @@ KwMat <- function(TrainData, w, Sigma) {
   return(KernelMat(TrainData = TrainData, Sigma = Sigma))
 }
 
+SolveKOS <- function(YTheta, K, Gamma){
+  n = nrow(K)
+  Mat = K+ n*Gamma*diag(n)
+  B = YTheta
+  return(qr.solve(a = Mat, b= B))
+}
 
 GetProjections <- function(TrainData, TrainCat, TestData, Dvec = NULL, w = rep(1, ncol(TrainData)), Kw = NULL, Sigma = NULL, Gamma = NULL){
   n <- nrow(TrainData)
@@ -96,6 +101,11 @@ GetProjections <- function(TrainData, TrainCat, TestData, Dvec = NULL, w = rep(1
   if(is.null(Kw)){
     Kw <- KwMat(TrainData = TrainData, w = w, Sigma = Sigma)
   }
+  Means <- colMeans(Kw) 
+  
+  # -- Double-center Kw --
+  Kw <-scale(Kw, center = TRUE, scale = FALSE)
+  Kw <- scale(t(Kw), center = TRUE, scale = FALSE)
   
   #Generate One-hot encoding matrix and optimal scores
   Y <- IndicatMat(TrainCat)$Categorical
@@ -120,7 +130,6 @@ GetProjections <- function(TrainData, TrainCat, TestData, Dvec = NULL, w = rep(1
   TestData <- t( t(TestData) * w)
   
   # --- Generate Projection Values ---
-  Means <- colMeans(Kw) 
   PV <- apply(TestData, MARGIN = 1, FUN = function(z){
     
     # Kernel evalutations of x and each vector in Data
@@ -142,128 +151,120 @@ GetProjections <- function(TrainData, TrainCat, TestData, Dvec = NULL, w = rep(1
 # vector of length n.  YTheta is the n x G-1 transformed response matrix.  w is
 # weight vector of length p. Each coordinate lies between -1 and 1.  Gamma is
 # ridge parameter Sigma is Gaussian kernel parameter.
-FormQB <- function(TrainData, Dvec, YTheta, w, Sigma, Gamma) {
-  Kw <- KwMat(as.matrix(TrainData), w, Sigma)  #forms weighted kernel matrix
-  #Doubly-center the weighted kernel matrix
-  Kw <- scale(Kw, center = TRUE, scale = FALSE)
-  Kw <- scale(t(Kw), center = TRUE, scale = FALSE)
-  
+FormQB <- function(TrainData, Dvec, YTheta, w, Kw, Sigma, Gamma) {
   #Set parameters
   p <- length(w)
-  k <- ncol(as.matrix(Dvec))
   n <- nrow(Kw)
   
   #Initialize Q matrix and B vector 
   Q <- matrix(rep(0, p^2), nrow = p)  #initialize Q matrix.
   B <- rep(0, p)  #initialize B vector
   
-  for (i in 1:k) {
-    Dvec_col <- Dvec[, i]
-    Tmat <- TMatCPP(TrainData, Dvec_col, w, Sigma)  #Forms T matrix
-    Q <- (1/n) * crossprod(Tmat) + Q  #Creates t(CT)*CT and adds it to previous terms
-    New <- (1/n) * crossprod(YTheta[, i] - Kw %*%  Dvec_col + Tmat %*% w, Tmat) - (Gamma/2) * crossprod(Dvec_col, Tmat)
-    # Forms Component of B vector which uses discriminant vector Dvec[,i]
-    B <- B + New  #Adds new component to sum of old components
-  }
-  return(list(B = B, Q = Q, Tmat = Tmat))
+  Tmat <- TMatCPP(TrainData, Dvec, w, Sigma)  #Forms T matrix
+  Q <- (1/n) * crossprod(Tmat) #Creates t(CT)*CT 
+  B <- (1/n) * crossprod(YTheta - Kw %*%  Dvec + Tmat %*% w, Tmat) - (Gamma/2) * crossprod(Dvec, Tmat)
+  return(list(B = B, Q = Q))
 }
 
 
-SparseKernOptScore <- function(TrainData, TrainCat, w0 = rep(1, ncol(TrainData)), 
+SparseKernOptScore <- function(TrainData, TrainCat, 
+                               Dvec = NULL, w0 = rep(1, ncol(TrainData)), 
                                Sigma, Gamma, Lambda, Maxniter = 100,
                                Epsilon = 1e-05, Error = 1e-05) {
   Y<-IndicatMat(TrainCat)$Categorical
-  # Get Everything Initialized#
-  D <- (ncol(Y) - 1)  #Number of discriminant vectors, G-1
+  #--- Get Everything Initialized ---
   n <- nrow(TrainData)
   p <- ncol(TrainData)
   error <- 1  #Initialize Error value
   niter <- 1
-  
-  #for sequence of weights and initialize first value
-  Weight_Seq <- matrix(0, length(w0), Maxniter)
-  Weight_Seq[, niter] <- w0
 
   #Form optimal scores and weighted kernel matrix
   Opt_Scores <- OptScores(TrainCat)
   YTheta <- Y %*% Opt_Scores
+  
   Kw <- KwMat(TrainData = TrainData,
               w = w0, 
               Sigma = Sigma)
+  #-- Double-center Kw --
+  Kw <- scale(Kw, center = TRUE, scale = FALSE)
+  Kw <- scale(t(Kw), center = TRUE, scale = FALSE)
+  
+  # Create Initial Discrimiant Vector and Quadratic Form Terms#
+  if(is.null(Dvec)){
+    Dvec_old <- SolveKOSCPP(YTheta = YTheta, 
+                         K = Kw, 
+                         Gamma = Gamma) #initialize old coefficients
+  }
+  else{
+    Dvec_old = Dvec
+  }
   
   #If no sparsity penalty, return KOS vector and initial weights
   if(Lambda == 0){
-    Dvec <- SolveKOSCPP(YTheta = YTheta, K = Kw, Gamma = Gamma)
-    return(list(Weights = w0, Dvec = Dvec))
+    return(list(Weights = w0, Dvec = Dvec_old))
   }
+
   
   #From here on, sparsity penalty Lambda > 0. 
-
-  # Create Initial Discrimiant Vector and Quadratic Form Terms#
-  Dvec_old <- SolveKOSCPP(YTheta = YTheta, K = Kw, Gamma = Gamma) #initialize old coefficients
-
-  OldQB <- FormQB(TrainData, Dvec = Dvec_old, YTheta = YTheta, w = w0, Gamma = Gamma, Sigma)
+  
+  OldQB <- FormQB(TrainData = TrainData, 
+                  Dvec = Dvec_old, 
+                  YTheta = YTheta,
+                  w = w0,
+                  Kw = Kw, 
+                  Gamma = Gamma, 
+                  Sigma = Sigma)
+  
   Qold <- OldQB$Q #Initialize Q
   Bold <- OldQB$B #Initialize B
-
+  
   # Record Objective Function Value with Initial Terms
   OFV <- ObjectiveFuncCPP(w0, Kw, TrainData, Dvec_old, YTheta, Lambda, Gamma,  Epsilon)
-  OFV_seq <- rep(0, Maxniter)
-  OFV_seq[niter] <- OFV
   
   # Enter while loop for updating weights and discriminant vectors.
   # Terminates if loss function values converge or if maximum 
   # iterations reached.
   while (error > Error && niter < Maxniter) {
-    if (niter > Maxniter) { 
-      break #additional test for maximum iterations reached.
-    }
     
     # Update the Weights
     w <- as.numeric(CoordDesCPP(w0, Qold, Bold, Lambda, 1e-06, 1e+07))
     Kw <- KwMat(TrainData = TrainData, 
                 w = w, 
                 Sigma = Sigma) #reform weighted kernel matrix
-
-    ## Tests for decrease objective function###
-    OFV_Weights_new <- ObjectiveFuncCPP(w, Kw, TrainData, Dvec_old, YTheta, Lambda, Gamma, Epsilon)
-    # if(OFV_Weights_new>OFV)print('Weights Increased Obj. Func.')
-
+    
+    #-- Double-center Kw --
+    Kw <- scale(Kw, center = TRUE, scale = FALSE)
+    Kw <- scale(t(Kw), center = TRUE, scale = FALSE)
+    
     #Update Discriminant Vector
     Dvec <- SolveKOSCPP(YTheta = YTheta,  K = Kw, Gamma = Gamma)
-    if (sum(Dvec^2) == 0) {
-      print("Discriminant Vector is zero.")
-    }
-
+    
+    # --- Calculate updated objective function value ---
     OFV_dvec <- ObjectiveFuncCPP(w, Kw, TrainData, Dvec, YTheta, Lambda, Gamma, Epsilon)
-
-    ### Update quadratic form terms ###
+    
+    #--- Update quadratic form terms ---
     Output <- FormQB(TrainData = TrainData, 
                      Dvec = Dvec, 
                      YTheta = YTheta, 
-                     w = w, 
+                     w = w,
+                     Kw = Kw, 
                      Gamma = Gamma, 
                      Sigma = Sigma)
     Q <- Output$Q
     B <- Output$B
-
+    
     Error <- abs(OFV_dvec - OFV)
-
+    
     niter <- niter + 1 #update iteration count
-
-    OFV_seq[niter] <- OFV_dvec
-    Weight_Seq[, niter] <- w
-
+    
+    #--- Update weights, quadratic form term, and Discriminant Vector ---
     w0 <- w
     Bold <- B
     Qold <- Q
     Dvec_old <- Dvec
     OFV <- OFV_dvec
   }
-  if (niter < Maxniter) {
-    Weight_Seq[, c(niter:Maxniter)] <- w
-    OFV_seq[c(niter:Maxniter)] <- OFV
-  }
+
   return(list(Weights = w0, Dvec = Dvec))
 }
 
@@ -273,13 +274,13 @@ SelectRidge <- function(TrainData, TrainCat, Sigma, Epsilon = 1e-05) {
   YTrain <- IndicatMat(TrainCat)$Categorical
   Opt_ScoreTrain <- OptScores(TrainCat)
   YThetaTrain <- YTrain %*% Opt_ScoreTrain
-
+  
   K <- KernelMat(TrainData, Sigma)
   K <- scale(K, center = TRUE, scale = FALSE)
   K <- scale(t(K), center = TRUE, scale = FALSE)
   VS <- (n / ((n - 1)^2 * (n - 2))) * (sum(diag(K)^2) - (1/n) * sum(K^2))
   denom <- (1 / (n - 1)^2) * (sum(K^2))
-
+  
   t <- VS / denom
   Gamma <- t / (1 - t)
   return(Gamma)
@@ -290,7 +291,7 @@ RidgeGCV <- function(Data, Cat, Sigma, Epsilon = 1e-05) {
   YTrain <- IndicatMat(Cat)$Categorical
   Opt_ScoreTrain <- OptScores(Cat)
   YThetaTrain <- YTrain %*% Opt_ScoreTrain
-
+  
   K <- KernelMat(Data, Sigma)
   n <- nrow(K)
   C <- diag(n) - (1/n) * matrix(rep(1, n^2), nrow = n)
@@ -327,11 +328,10 @@ LassoCV <- function(TrainData, TrainCat, B, Gamma, Sigma,
                     Epsilon = 1e-05) {
   #Generate Lambda Seqeunce
   c <- 2 * max(abs(B))
-  Lambdaseq <- emdbook::lseq(from = 1e-10 * c, to = c, length.out = 20)
+  Lambdaseq <- LambdaSeqCpp(from = 1e-10 * c, to = c, length = 20)
   
   n <- nrow(TrainData)
   FoldLabels <- CreateFolds(TrainCat)
-  w <- rep(1, ncol(TrainData))
   
   Errors <- rep(0, 20) #Initialize Errors
   
@@ -342,14 +342,18 @@ LassoCV <- function(TrainData, TrainCat, B, Gamma, Sigma,
     NewTrainCat <- subset(TrainCat, FoldLabels != i)
     NewTestCat <- subset(TrainCat, FoldLabels == i)
     NewTestData <- subset(TrainData, FoldLabels == i)
-        
+    
     ## Scale and Center Folds ##
     output <- CenterScale(NewTrainData, NewTestData)
     NewTrainData <- output$TrainData
     NewTestData <- output$TestData
-        
+    
     YTrain <- IndicatMat(NewTrainCat)$Categorical  #Create n x G categorical response matrix
-        
+    Opt_ScoreTrain <- OptScores(NewTrainCat)
+    YTheta <- YTrain %*% Opt_ScoreTrain
+    
+    w <- rep(1, ncol(TrainData)) #Initialize weights 
+    
     #--- Run through lambda seqeunce and compute CV errors---
     for (j in 1:20) {
       totalError <- 0
@@ -359,59 +363,70 @@ LassoCV <- function(TrainData, TrainCat, B, Gamma, Sigma,
         totalError <- length(TrainCat)
       } 
       else {
-      # Apply kernel feature selection algorithm on training data
-      output <- SparseKernOptScore(TrainData = NewTrainData, 
-                                   TrainCat = NewTrainCat, 
-                                   w0 = w, 
-                                   Sigma = Sigma,
-                                   Gamma = Gamma,
-                                   Lambda = Lambdaseq[j], 
-                                   Maxniter = 100, 
-                                   Epsilon = Epsilon)
+        #Initialize Dvec to KOS solution at first iteration
+        if(j ==1){ 
+          K <- KernelMat(TrainData = NewTrainData, Sigma = Sigma)
+          K <- scale(K, center = TRUE, scale = FALSE)
+          K <- scale(t(K), center = TRUE, scale = FALSE)
+          Dvec <- SolveKOSCPP(YTheta, K, Gamma = Gamma)
+        }
+        # Else use warm start from previous solution
         
-      w <- as.numeric(output$Weights)
+        # Apply kernel feature selection algorithm on training data
+        output <- SparseKernOptScore(TrainData = NewTrainData, 
+                                     TrainCat = NewTrainCat, 
+                                     Dvec = Dvec, #warm start Dvec
+                                     w0 = w,#warm start Weights
+                                     Sigma = Sigma,
+                                     Gamma = Gamma,
+                                     Lambda = Lambdaseq[j], 
+                                     Maxniter = 100, 
+                                     Epsilon = Epsilon)
         
-      if (sum(abs(w)) == 0) {
-        totalError <- length(TrainCat)
-      } else {
-          
-        # Scale test data by weights
-          
-        NewTestDataFold <- t(t(NewTestData) * w)
-        NewTrainDataFold <- t(t(NewTrainData) * w)
-          
-        ## Need weighted kernel matrix to compute projection values
-        NewKtrain <- KernelMat(NewTrainDataFold, Sigma = Sigma)
+        w <- as.numeric(output$Weights)
         Dvec <- output$Dvec
-          
-        # Create projection Values
-        NewTestProjections <- GetProjections(TrainData = NewTrainDataFold, 
-                                                  TrainCat = NewTrainCat, 
-                                                  TestData = NewTestDataFold, 
-                                                  Dvec = Dvec, 
-                                                  w = w, 
-                                                  Kw = NewKtrain, 
-                                                  Sigma = Sigma, 
-                                                  Gamma = Gamma)
-          
-        ### Need test projection values for LDA
-        TrainProjections <- GetProjections(TrainData = NewTrainDataFold, 
-                                                TrainCat = NewTrainCat, 
-                                                TestData = NewTrainDataFold, 
-                                                Dvec = Dvec, 
-                                                w = w, 
-                                                Kw = NewKtrain, 
-                                                Sigma = Sigma, 
-                                                Gamma = Gamma)
-          
         
-        predictions <- LDA(TrainData = as.matrix(TrainProjections),
+        if (sum(abs(w)) == 0) {
+          totalError <- length(TrainCat)
+        } else {
+          
+          # Scale test data by weights
+          
+          NewTestDataFold <- t(t(NewTestData) * w)
+          NewTrainDataFold <- t(t(NewTrainData) * w)
+          
+          ## Need weighted kernel matrix to compute projection values
+          NewKtrain <- KernelMat(NewTrainDataFold, Sigma = Sigma)
+          
+          
+          # Create projection Values
+          NewTestProjections <- GetProjectionsCPP(TrainData = NewTrainDataFold, 
+                                               TrainCat = NewTrainCat, 
+                                               TestData = NewTestDataFold, 
+                                               Dvec = Dvec, 
+                                               w = w, 
+                                               Kw = NewKtrain, 
+                                               Sigma = Sigma, 
+                                               Gamma = Gamma)
+          
+          ### Need test projection values for LDA
+          TrainProjections <- GetProjectionsCPP(TrainData = NewTrainDataFold, 
+                                             TrainCat = NewTrainCat, 
+                                             TestData = NewTrainDataFold, 
+                                             Dvec = Dvec, 
+                                             w = w, 
+                                             Kw = NewKtrain, 
+                                             Sigma = Sigma, 
+                                             Gamma = Gamma)
+          
+          
+          predictions <- LDA(TrainData = as.matrix(TrainProjections),
                              TrainCat = NewTrainCat,
                              TestData = as.matrix(NewTestProjections))
           
-        # Compute number of misclassified points
-        FoldError <- sum(predictions != NewTestCat)
-        totalError <- totalError + FoldError
+          # Compute number of misclassified points
+          FoldError <- sum(predictions != NewTestCat)
+          totalError <- totalError + FoldError
         }
       }
     }
@@ -456,6 +471,7 @@ LassoCV <- function(TrainData, TrainCat, B, Gamma, Sigma,
 #'              TrainCat = TrainCat, 
 #'              Sigma = Sigma, 
 #'              Gamma = Gamma)
+#' @export
 SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilon = 1e-05) {
   n <- nrow(TrainData)
   p <- ncol(TrainData)
@@ -466,11 +482,11 @@ SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilo
     Data1 <- subset(TrainData , TrainCat == 1)
     Data2 <- subset(TrainData , TrainCat == 2)
     DistanceMat <- fields::rdist(x1 = Data1, x2 = Data2)
-  
+    
     Y <- IndicatMat(TrainCat)$Categorical
     Theta <- OptScores(TrainCat)
     YTheta <- Y %*% Theta
-  
+    
     for(j in 1:5){
       #Set Sigma to quantile value
       Sigma <- stats::quantile(DistanceMat, QuantileTest[j])
@@ -482,12 +498,16 @@ SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilo
                            Epsilon = Epsilon)
       
       K <- KernelMat(TrainData, Sigma)
+      #-- Double-center K --
+      K <- scale(K, center = TRUE, scale = FALSE)
+      K <- scale(t(K), center = TRUE, scale = FALSE)
       
-      Dvec <- SolveKOSCPP(YTheta, K, Gamma)
+      Dvec <- SolveKOSCPP(YTheta = YTheta, K = K, Gamma = Gamma)
       B <- FormQB(TrainData = TrainData, 
                   Dvec = Dvec, 
                   YTheta = YTheta, 
-                  w = rep(1, p), 
+                  w = rep(1, p),
+                  Kw = K, 
                   Sigma = Sigma, 
                   Gamma = Gamma)$B
       
@@ -508,12 +528,18 @@ SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilo
     Y <- IndicatMat(TrainCat)$Categorical
     Theta <- OptScores(TrainCat)
     YTheta <- Y %*% Theta
+    
     K <- KernelMat(TrainData, Sigma)
-    Dvec <- SolveKOSCPP( YTheta, K, Gamma)
+    #-- Double-center K --
+    K <- scale(K, center = TRUE, scale = FALSE)
+    K <- scale(t(K), center = TRUE, scale = FALSE)
+    
+    Dvec <- SolveKOSCPP(YTheta = YTheta, K = K, Gamma = Gamma)
     B <- FormQB(TrainData, 
                 Dvec, 
                 YTheta, 
-                w=rep(1, p), 
+                w = rep(1, p),
+                Kw = K, 
                 Gamma, 
                 Sigma)$B
     
@@ -530,12 +556,19 @@ SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilo
     Theta <- OptScores(TrainCat)
     YTheta <- Y %*% Theta
     K <- KernelMat(TrainData, Sigma)
-    Dvec <- SolveKOSCPP(YTheta, K, Gamma)
+    
+    #-- Double-center K --
+    K <- scale(K, center = TRUE, scale = FALSE)
+    K <- scale(t(K), center = TRUE, scale = FALSE)
+    
+    #--- Solve for Discriminant Vector ---
+    Dvec <- SolveKOSCPP(YTheta = YTheta, K = K, Gamma = Gamma)
     
     B <- FormQB(TrainData, 
                 Dvec, 
                 YTheta, 
-                w = rep(1, p), 
+                w = rep(1, p),
+                Kw = K, 
                 Gamma, 
                 Sigma)$B
     
@@ -596,4 +629,3 @@ CreateFolds <- function(Cat) {
   
   return(as.numeric(Labels$FoldLabel))
 }
-

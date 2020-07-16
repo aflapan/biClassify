@@ -88,14 +88,14 @@ test_that("FormQB returns correct dimensions",{
   QBoutput <- FormQB(TrainData = TrainData, 
                      Dvec = Dvec, 
                      YTheta = YTheta, 
+                     Kw = Kw,
                      w = rep(1, ncol(TrainData)), 
                      Sigma = 1, 
                      Gamma = 0.1)
   testQ <- QBoutput$Q
   testB <- QBoutput$B
-  testTmat <- QBoutput$Tmat
   
-  expect_equal(c(nrow(testQ), length(testB), ncol(testTmat)), rep(p, 3))
+  expect_equal(c(nrow(testQ), length(testB)), rep(p, 2))
 })
 
 # --- Testing SparseKernOptScore ---
@@ -113,7 +113,11 @@ test_that("SparseKernOptScore equals kernel ridge regression when Lambda = 0",{
   Y <- IndicatMat(TrainCat)$Categorical
   Theta <- OptScores(TrainCat)
   YTheta <- Y %*% Theta
+  
   Kw <- KwMat(TrainData, rep(1,p), 1)
+  Kw <- scale(Kw, center = TRUE, scale = FALSE)
+  Kw <- scale(t(Kw), center = TRUE, scale = FALSE)  
+  
   Dvec <- SolveKOSCPP(YTheta, Kw, 0.1)
   
   expect_equal(Dvec, SparseKOS_output$Dvec)
@@ -182,14 +186,12 @@ test_that("Rcpp GetProjectionsCPP and R GetProjections functions are equal",{
   Sigma <- 1
   Gamma <- 0.09853699 #result of SelectRidge
   
-  Dvec <- SolveKOSCPP(YTheta, K, Gamma)
-  B <- FormQB(TrainData = TrainData, 
-              Dvec = Dvec, 
-              YTheta = YTheta, 
-              w = rep(1, p), 
-              Sigma = Sigma, 
-              Gamma = Gamma)$B
+  K <- KernelMat(TrainData = TrainData, Sigma = Sigma)
+  K <- scale(K, center = TRUE, scale = FALSE)
+  K <- scale(t(K), center = TRUE, scale = FALSE)
   
+  Dvec <- SolveKOSCPP(YTheta, K, Gamma)
+ 
   R_Projs <- GetProjections(TrainData = TrainData,
                            TrainCat = TrainCat,
                            TestData = TestData,
@@ -198,6 +200,7 @@ test_that("Rcpp GetProjectionsCPP and R GetProjections functions are equal",{
                            Kw = K,
                            Sigma = Sigma, 
                            Gamma = Gamma)
+  
   CPP_Projs <- GetProjectionsCPP(TrainData = TrainData,
                                  TrainCat = TrainCat,
                                  TestData = TestData,
@@ -208,4 +211,44 @@ test_that("Rcpp GetProjectionsCPP and R GetProjections functions are equal",{
                                  Gamma = Gamma)
   
   expect_equal(sum(abs(R_Projs - CPP_Projs)) < 1E-10, TRUE)
+})
+
+
+#--- Testing SolveKOS --- 
+
+test_that("SolveKOS and SolveKOSCPP are equal", {
+  
+  TrainData <- KOS_Data$TrainData
+  TrainCat <- KOS_Data$TrainCat
+  TestData <- KOS_Data$TestData
+  
+  
+  Y<-IndicatMat(TrainCat)$Categorical
+  
+  #--- Get Everything Initialized ---
+  n <- nrow(TrainData)
+  p <- ncol(TrainData)
+  error <- 1  #Initialize Error value
+  niter <- 1
+  Sigma <- 1
+  Gamma <- 0.1
+  
+  #Form optimal scores and weighted kernel matrix
+  Opt_Scores <- OptScores(TrainCat)
+  YTheta <- Y %*% Opt_Scores
+  
+  Kw <- KwMat(TrainData = TrainData,
+              w = rep(1, p), 
+              Sigma = Sigma)
+  #-- Double-center Kw --
+  Kw <- scale(Kw, center = TRUE, scale = FALSE)
+  Kw <- scale(t(Kw), center = TRUE, scale = FALSE)
+  
+  Dvec <- SolveKOS(YTheta = YTheta, 
+                       K = Kw, 
+                       Gamma = Gamma) 
+
+    
+  DvecCPP <- SolveKOSCPP(YTheta, Kw, Gamma)
+  expect_equal(sum(abs(Dvec - DvecCPP)) < 1E-7, TRUE)
 })
