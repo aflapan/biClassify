@@ -221,17 +221,16 @@ computeMahalanobis <- function(TrainData, TrainCat, TestData, W = NULL, Dvec = N
 
 
 
-#' @title Classify
-#' @description A function which implements full LDA on the supplied data.
-#' @param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
-#' @param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
-#' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
-#' @param Dvec An optinal (p x 1) vector used as the discriminant vector. Defualt value is NULL, as the function generates its own discriminant vector.
-#' @param W An optinal (p x p) matrix used as the within-group covariance matrix. Defualt value is NULL, as the function generates its own covariance matrix.
-#' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
-#' @description Generates linear discriminant vector and class predictions for \code{TestData}.
-#' @details Function for full LDA.
-#' @export
+# title Classify
+# description A function which implements full LDA on the supplied data.
+# param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
+# param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
+# param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
+# param Dvec An optinal (p x 1) vector used as the discriminant vector. Defualt value is NULL, as the function generates its own discriminant vector.
+# param W An optinal (p x p) matrix used as the within-group covariance matrix. Defualt value is NULL, as the function generates its own covariance matrix.
+# param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
+# description Generates linear class predictions for \code{TestData}.
+# details Function for full LDA.
 Classify <- function(TrainData, TrainCat, TestData, Dvec = NULL, W = NULL, gamma = 1E-5){
   n1 <- nrow(TrainData[TrainCat == 1, ])
   n2 <- nrow(TrainData[TrainCat == 2, ])
@@ -268,19 +267,18 @@ Classify <- function(TrainData, TrainCat, TestData, Dvec = NULL, W = NULL, gamma
 }
 
 
-#' @title compressPredict
-#' @description A function which implements compressed LDA on the supplied data.
-#' @param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
-#' @param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
-#' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
-#' @param m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
-#' @param m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
-#' @param s The sparsity level used in compression. Must satify 0 < s < 1.
-#' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
-#' @param type A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.
-#' @description Generates the compressed linear discriminant vector and class predictions for \code{TestData}.
-#' @details Function for compressed LDA.
-#' @export
+# title compressPredict
+# description A function which implements compressed LDA on the supplied data.
+# param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
+# param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
+# param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
+# param m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
+# param m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
+# param s The sparsity level used in compression. Must satify 0 < s < 1.
+# param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
+# param type A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.
+# description Generates the compressed class predictions for \code{TestData}.
+# details Function for compressed LDA.
 compressPredict <- function(TrainData, TrainCat, TestData, m1, m2, s, gamma = 1E-5, type = "Rademacher"){
   #----- Split Data into Groups ------
   TrainX1 <- TrainData[TrainCat == 1, ]
@@ -346,17 +344,16 @@ subsampleClasses <- function(TrainData, TrainCat, m1, m2){
 }
 
 
-#' @title subsetPredict
-#' @description A function which implements sub-sampled LDA on the supplied data.
-#' @param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
-#' @param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
-#' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
-#' @param m1 The number of class 1 sub-samples. Must be a positive integer.
-#' @param m2 The number of class 2 sub-samples. Must be a positive integer.
-#' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
-#' @description Generates the sub-sampled linear discriminant vector and class predictions for \code{TestData}.
-#' @details Function for sub-sampled LDA.
-#' @export
+# title subsetPredict
+# description A function which implements sub-sampled LDA on the supplied data.
+# param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
+# param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
+# param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
+# param m1 The number of class 1 sub-samples. Must be a positive integer.
+# param m2 The number of class 2 sub-samples. Must be a positive integer.
+# param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
+# description Generates the sub-sampled linear discriminant vector and class predictions for \code{TestData}.
+# details Function for sub-sampled LDA.
 subsetPredict <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
   stopifnot(ncol(TrainData) == ncol(TestData))
   stopifnot(m1 > 0 & m2 > 0)
@@ -379,21 +376,20 @@ subsetPredict <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 
 
 
-#' @title projectPredict
-#' @description A function which implements projected LDA on the supplied data.
-#' @param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
-#' @param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
-#' @param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
-#' @param Q1 An optional (m1 x n1) sparse matrix used for compressing class 1. The default value is NULL.
-#' @param Q2 An optional (m2 x n2) sparse matrix used for compressing class 2. The default value is NULL.
-#' @param m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
-#' @param m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
-#' @param s The sparsity level used in compression. Must satify 0 < s < 1.
-#' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
-#' @param type A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.
-#' @description Generates the compressed linear discriminant vector and projected class predictions for \code{TestData}.
-#' @details Function for projected LDA.
-#' @export
+# title projectPredict
+# description A function which implements projected LDA on the supplied data.
+# param TrainData A (n x p) numeric matrix without missing values consisting of n training samples each with p features.
+# param TrainCat A vector of length n consisting of group labels of the n training samples in \code{TrainData}. Must consist of 1s and 2s.
+# param TestData A (m x p) numeric matrix without missing values consisting of m training samples each with p features. The number of features must equal the number of features in \code{TrainData}.
+# param Q1 An optional (m1 x n1) sparse matrix used for compressing class 1. The default value is NULL.
+# param Q2 An optional (m2 x n2) sparse matrix used for compressing class 2. The default value is NULL.
+# param m1 The number of class 1 compressed samples to be generated. Must be a positive integer.
+# param m2 The number of class 2 compressed samples to be generated. Must be a positive integer.
+# param s The sparsity level used in compression. Must satify 0 < s < 1.
+# param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
+# param type A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.
+# description Generates the compressed linear discriminant vector and projected class predictions for \code{TestData}.
+# details Function for projected LDA.
 projectPredict <- function(TrainData, TrainCat, TestData, Q1 = NULL, Q2 = NULL, m1, m2, s = 0.01, gamma = 1E-5, type = "Rademacher"){
   #----- Split Data into Groups ------
   TrainX1 <- TrainData[TrainCat == 1, ]
@@ -533,7 +529,7 @@ testParameters <- function(m1,m2,s){
 #' @param s The sparsity level used in compression. Must satify 0 < s < 1.
 #' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
 #' @param type A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.
-#' @description Generates linear discriminant vector and class predictions for \code{TestData}.
+#' @description Generates class predictions for \code{TestData}.
 #' @details Function which handles all implementations of LDA. 
 #' @examples 
 #' TrainData <- LDA_Data$TrainData
@@ -627,9 +623,8 @@ testParameters <- function(m1,m2,s){
 #'       Method = "fastRandomFisher",
 #'       Mode = "Automatic",
 #'       gamma = 1E-5)  
-#' @return A list of 
+#' @return 
 #' \item{Predictions}{(m x 1) Vector of predicted class labels for the data points in \code{TestData}.}  
-#' \item{Dvec}{ (p x 1) Discriminant vector.}
 #' @export
 LDA <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic", m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1E-5, type = "Rademacher"){
   if(Mode == "Automatic"){

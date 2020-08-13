@@ -32,14 +32,12 @@ LDA(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic",
 \item{type}{A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.}
 }
 \value{
-A list of 
-\item{Predictions}{(m x 1) Vector of predicted class labels for the data points in \code{TestData}.}  
-\item{Dvec}{ (p x 1) Discriminant vector.}
+\item{Predictions}{(m x 1) Vector of predicted class labels for the data points in \code{TestData}.}
 }
 \description{
 A wrapper function for the various LDA implementations available in this package.
 
-Generates linear discriminant vector and class predictions for \code{TestData}.
+Generates class predictions for \code{TestData}.
 }
 \details{
 Function which handles all implementations of LDA.
