@@ -85,29 +85,44 @@ arma::Col<double> SolveKOSCPP(arma::Mat<double> YTheta, arma::Mat<double> K,doub
    arma::Mat<double> Mat = K+ n*Gamma*arma::diagmat(arma::ones(n)); //Add the n*Gamma*I term for ridge penalty
    arma::Col<double> Dvec = solve(Mat,YTheta);
    return(Dvec);
- }
+}
 
 // [[Rcpp::export]]
 arma::Mat<double> DerivCPP(arma::Row<double> x, arma::Mat<double> Data, arma::Col<double> w0, double sigmaD){
-  arma::Mat<double> Diff=Data.each_row()-x;
+  arma::Mat<double> Diff = Data.each_row()-x;
   Diff = square(Diff);
-  arma::Mat<double> DiffPart = (-2/(sigmaD))*(Diff*diagmat(w0));
-  int k = Data.n_cols;
-  arma::Col<double> RowSums = Diff*arma::ones(k);
-  arma::Col<double> KernPart = exp(-RowSums*(1/(sigmaD)));
+  arma::Mat<double> DiffPart = (-2/sigmaD)*(Diff*diagmat(w0));
+  int p = Data.n_cols;
+  arma::Col<double> RowSums = Diff*arma::ones(p);
+  arma::Col<double> KernPart = exp(-RowSums*(1/sigmaD));
   arma::Mat<double> result = arma::diagmat(KernPart)*DiffPart;
   return(result);
 }
 
 // [[Rcpp::export]]
-arma::Mat<double> TMatCPP(arma::Mat<double> Data, arma::Col<double> A, arma::Col<double> w0, double sigmaTm){
+arma::Mat<double> TMatCPP(arma::Mat<double> Data, arma::Col<double> Dvec, arma::Col<double> w0, double sigmaTm){
   int p = Data.n_cols;
-  int n = A.n_rows;
+  int n = Dvec.n_rows;
   arma::Mat<double> C = arma::eye(n,n)-(1/n)*arma::ones(n,n);
-  A = C*A;
-  arma::Mat<double> T=arma::zeros(n,p);
+  Dvec = C*Dvec;
+  arma::Mat<double> T = arma::zeros(n,p);
   for(int j=0; j<n; j++){
-    T.row(j)=A.t()*DerivCPP(Data.row(j),Data,w0,sigmaTm);
+    T.row(j)=Dvec.t()*DerivCPP(Data.row(j), Data , w0, sigmaTm);
+  }
+  T = C*T;
+  return(T);
+}
+
+// [[Rcpp::export]]
+arma::Mat<double> compressedTMatCPP(arma::Mat<double> Data, arma::Mat<double> Q, arma::Col<double> compDvec, arma::Col<double> w0, double Sigma){
+  int p = Data.n_cols;
+  int m = compDvec.n_rows;
+  arma::Mat<double> C = arma::eye(m,m)-(1/m)*arma::ones(m,m);
+  compDvec = compDvec;
+  
+  arma::Mat<double> T = arma::zeros(m,p);
+  for(int j=0; j<m; j++){
+    T.row(j)=compDvec.t()*DerivCPP(Data.row(j), Data , w0, Sigma);
   }
   T = C*T;
   return(T);

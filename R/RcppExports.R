@@ -25,8 +25,12 @@ DerivCPP <- function(x, Data, w0, sigmaD) {
     .Call('_biClassify_DerivCPP', PACKAGE = 'biClassify', x, Data, w0, sigmaD)
 }
 
-TMatCPP <- function(Data, A, w0, sigmaTm) {
-    .Call('_biClassify_TMatCPP', PACKAGE = 'biClassify', Data, A, w0, sigmaTm)
+TMatCPP <- function(Data, Dvec, w0, sigmaTm) {
+    .Call('_biClassify_TMatCPP', PACKAGE = 'biClassify', Data, Dvec, w0, sigmaTm)
+}
+
+compressedTMatCPP <- function(Data, Q, compDvec, w0, Sigma) {
+    .Call('_biClassify_compressedTMatCPP', PACKAGE = 'biClassify', Data, Q, compDvec, w0, Sigma)
 }
 
 ObjectiveFuncCPP <- function(w, Kw, Data, DVectors, YTheta, LambdaOF, GammaOF, EpsilonOF = 1e-5) {

@@ -86,16 +86,31 @@ BEGIN_RCPP
 END_RCPP
 }
 // TMatCPP
-arma::Mat<double> TMatCPP(arma::Mat<double> Data, arma::Col<double> A, arma::Col<double> w0, double sigmaTm);
-RcppExport SEXP _biClassify_TMatCPP(SEXP DataSEXP, SEXP ASEXP, SEXP w0SEXP, SEXP sigmaTmSEXP) {
+arma::Mat<double> TMatCPP(arma::Mat<double> Data, arma::Col<double> Dvec, arma::Col<double> w0, double sigmaTm);
+RcppExport SEXP _biClassify_TMatCPP(SEXP DataSEXP, SEXP DvecSEXP, SEXP w0SEXP, SEXP sigmaTmSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::Mat<double> >::type Data(DataSEXP);
-    Rcpp::traits::input_parameter< arma::Col<double> >::type A(ASEXP);
+    Rcpp::traits::input_parameter< arma::Col<double> >::type Dvec(DvecSEXP);
     Rcpp::traits::input_parameter< arma::Col<double> >::type w0(w0SEXP);
     Rcpp::traits::input_parameter< double >::type sigmaTm(sigmaTmSEXP);
-    rcpp_result_gen = Rcpp::wrap(TMatCPP(Data, A, w0, sigmaTm));
+    rcpp_result_gen = Rcpp::wrap(TMatCPP(Data, Dvec, w0, sigmaTm));
+    return rcpp_result_gen;
+END_RCPP
+}
+// compressedTMatCPP
+arma::Mat<double> compressedTMatCPP(arma::Mat<double> Data, arma::Mat<double> Q, arma::Col<double> compDvec, arma::Col<double> w0, double Sigma);
+RcppExport SEXP _biClassify_compressedTMatCPP(SEXP DataSEXP, SEXP QSEXP, SEXP compDvecSEXP, SEXP w0SEXP, SEXP SigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type Data(DataSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type Q(QSEXP);
+    Rcpp::traits::input_parameter< arma::Col<double> >::type compDvec(compDvecSEXP);
+    Rcpp::traits::input_parameter< arma::Col<double> >::type w0(w0SEXP);
+    Rcpp::traits::input_parameter< double >::type Sigma(SigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(compressedTMatCPP(Data, Q, compDvec, w0, Sigma));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -157,6 +172,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_biClassify_SolveKOSCPP", (DL_FUNC) &_biClassify_SolveKOSCPP, 3},
     {"_biClassify_DerivCPP", (DL_FUNC) &_biClassify_DerivCPP, 4},
     {"_biClassify_TMatCPP", (DL_FUNC) &_biClassify_TMatCPP, 4},
+    {"_biClassify_compressedTMatCPP", (DL_FUNC) &_biClassify_compressedTMatCPP, 5},
     {"_biClassify_ObjectiveFuncCPP", (DL_FUNC) &_biClassify_ObjectiveFuncCPP, 8},
     {"_biClassify_LambdaSeqCpp", (DL_FUNC) &_biClassify_LambdaSeqCpp, 3},
     {"_biClassify_GetProjectionsCPP", (DL_FUNC) &_biClassify_GetProjectionsCPP, 8},

@@ -4,8 +4,9 @@
 \alias{KOS}
 \title{Function which generates feature weights, discriminant vector, and class predictions.}
 \usage{
-KOS(TestData = NULL, TrainData, TrainCat, Sigma = NULL, Gamma = NULL,
-  Lambda = NULL, Epsilon = 1e-05)
+KOS(TestData = NULL, TrainData, TrainCat, Method = "Full",
+  Mode = "Automatic", m1 = NULL, m2 = NULL, s = NULL,
+  Sigma = NULL, Gamma = NULL, Lambda = NULL, Epsilon = 1e-05)
 }
 \arguments{
 \item{TestData}{(m x p) Matrix of unlabelled data with numeric features to be classified. Cannot have missing values.}
@@ -13,6 +14,16 @@ KOS(TestData = NULL, TrainData, TrainCat, Sigma = NULL, Gamma = NULL,
 \item{TrainData}{(n x p) Matrix of training data with numeric features. Cannot have missing values.}
 
 \item{TrainCat}{(n x 1) Vector of class membership corresponding to Data. Values must be either 1 or 2.}
+
+\item{Method}{A string of characters which determines which version of KOS to use. Must be either "Full" or "Subsampled". Default is "Full".}
+
+\item{Mode}{A string of characters which determines how the reduced sample paramters will be inputted for each method. Must be either "Research", "Interactive", or "Automatic". Default is "Automatic".}
+
+\item{m1}{The number of class 1 compressed samples to be generated. Must be a positive integer.}
+
+\item{m2}{The number of class 2 compressed samples to be generated. Must be a positive integer.}
+
+\item{s}{The sparsity level used in compression. Must satify 0 < s < 1.}
 
 \item{Sigma}{Scalar Gaussian kernel parameter. Default set to NULL and is automatically generated if user-specified value not provided. Must be > 0. User-specified parameters must satisfy hierarchical ordering.}
 

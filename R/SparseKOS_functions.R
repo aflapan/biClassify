@@ -69,6 +69,9 @@ KwMat <- function(TrainData, w, Sigma) {
   return(KernelMat(TrainData = TrainData, Sigma = Sigma))
 }
 
+
+
+
 SolveKOS <- function(YTheta, K, Gamma){
   n = nrow(K)
   Mat = K+ n*Gamma*diag(n)
@@ -160,8 +163,10 @@ FormQB <- function(TrainData, Dvec, YTheta, w, Kw, Sigma, Gamma) {
   Q <- matrix(rep(0, p^2), nrow = p)  #initialize Q matrix.
   B <- rep(0, p)  #initialize B vector
   
-  Tmat <- TMatCPP(TrainData, Dvec, w, Sigma)  #Forms T matrix
-  Q <- (1/n) * crossprod(Tmat) #Creates t(CT)*CT 
+  #Form T matrix
+  Tmat <- TMatCPP(TrainData, Dvec, w, Sigma)  
+  Q <- (1/n) * crossprod(Tmat) 
+  # Form linear component of quadratic form
   B <- (1/n) * crossprod(YTheta - Kw %*%  Dvec + Tmat %*% w, Tmat) - (Gamma/2) * crossprod(Dvec, Tmat)
   return(list(B = B, Q = Q))
 }
@@ -171,14 +176,14 @@ SparseKernOptScore <- function(TrainData, TrainCat,
                                Dvec = NULL, w0 = rep(1, ncol(TrainData)), 
                                Sigma, Gamma, Lambda, Maxniter = 100,
                                Epsilon = 1e-05, Error = 1e-05) {
-  Y<-IndicatMat(TrainCat)$Categorical
   #--- Get Everything Initialized ---
   n <- nrow(TrainData)
   p <- ncol(TrainData)
   error <- 1  #Initialize Error value
   niter <- 1
 
-  #Form optimal scores and weighted kernel matrix
+  #--- Form optimal scores and weighted kernel matrix ---
+  Y <- IndicatMat(TrainCat)$Categorical
   Opt_Scores <- OptScores(TrainCat)
   YTheta <- Y %*% Opt_Scores
   
@@ -318,7 +323,6 @@ CreateLogSeq <- function(From, To, NumPoints){
   LogSeq <-  seq(from = LogFrom, to = LogTo, length.out = NumPoints)
   return(exp(LogSeq))
 }
-
 
 
 
@@ -473,9 +477,21 @@ LassoCV <- function(TrainData, TrainCat, B, Gamma, Sigma,
 #'              Gamma = Gamma)
 #' @export
 SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilon = 1e-05) {
+  
+  # --- Initialize Parameters ---
   n <- nrow(TrainData)
   p <- ncol(TrainData)
+  n1 <- sum(TrainCat == 1)
+  n2 <- n - n1
+  p1 <- n1/n
+  p2 <- 1- p1
   
+  #--- Form YTheta ---
+  Y <- IndicatMat(TrainCat)$Categorical
+  Theta <- OptScores(TrainCat)
+  YTheta <- Y %*% Theta
+  
+  # --- Generate Sigma and Gamma Values if NULL ---
   if(is.null(Sigma) & is.null(Gamma)){
     E <- matrix(0, nrow = 5, ncol = 4)
     QuantileTest <- c(0.05, 0.1, 0.2, 0.3, 0.5)
@@ -483,10 +499,7 @@ SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilo
     Data2 <- subset(TrainData , TrainCat == 2)
     DistanceMat <- fields::rdist(x1 = Data1, x2 = Data2)
     
-    Y <- IndicatMat(TrainCat)$Categorical
-    Theta <- OptScores(TrainCat)
-    YTheta <- Y %*% Theta
-    
+    # --- Run Through Folds ---
     for(j in 1:5){
       #Set Sigma to quantile value
       Sigma <- stats::quantile(DistanceMat, QuantileTest[j])
@@ -524,7 +537,8 @@ SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilo
     return(list(Sigma = E[j, 4], Gamma = E[j, 2], Lambda = E[j, 3]))
   }
   else if( is.null(Sigma) == FALSE & is.null(Gamma) == FALSE){
-    ### Need to Create Lambda Value ###
+    
+    #--- Need to Create Lambda Value ---
     Y <- IndicatMat(TrainCat)$Categorical
     Theta <- OptScores(TrainCat)
     YTheta <- Y %*% Theta
@@ -552,6 +566,7 @@ SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilo
   }
   else if(is.null(Sigma) == FALSE & is.null(Gamma)){
     Gamma <- SelectRidge(TrainData, TrainCat, Sigma, Epsilon)
+    
     Y <- IndicatMat(TrainCat)$Categorical
     Theta <- OptScores(TrainCat)
     YTheta <- Y %*% Theta
@@ -579,7 +594,7 @@ SelectParams <- function(TrainData, TrainCat, Sigma = NULL, Gamma = NULL, Epsilo
                       Sigma = Sigma)$Lambda
   }
   else{
-    stop("Hierarchical order of parameters violated.")
+    stop("Hierarchical order of parameters violated. Please specify Sigma before Gamma, and both Sigma and Gamma before Lambda.")
   }
   return(list(Sigma = Sigma, Gamma = Gamma, Lambda = Lambda))
 }
