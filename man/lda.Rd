@@ -32,7 +32,9 @@ LDA(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic",
 \item{type}{A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.}
 }
 \value{
+A list containing 
 \item{Predictions}{(m x 1) Vector of predicted class labels for the data points in \code{TestData}.}
+\item{Dvec}{(px1) Discriminant vector used to predict the class labels.}
 }
 \description{
 A wrapper function for the various LDA implementations available in this package.
@@ -134,4 +136,9 @@ LDA(TrainData = TrainData,
       Method = "fastRandomFisher",
       Mode = "Automatic",
       gamma = 1E-5)  
+}
+\references{
+Lapanowski, Alexander F., and Gaynanova, Irina. ``Compressing large sample data for discriminant analysis'' arXiv preprint arXiv:2005.03858 (2020).
+
+Ye, Haishan, Yujun Li, Cheng Chen, and Zhihua Zhang. ``Fast Fisher discriminant analysis with randomized algorithms.'' Pattern Recognition 72 (2017): 82-92.
 }

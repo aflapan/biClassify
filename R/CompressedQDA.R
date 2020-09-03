@@ -116,6 +116,7 @@ subsampleQDA <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
 #' @param s The sparsity level used in compression. Must satify 0 < s < 1.
 #' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
 #' @description Generates class predictions for \code{TestData}.
+#' @references Lapanowski, Alexander F., and Gaynanova, Irina. ``Compressing large sample data for discriminant analysis'' arXiv preprint arXiv:2005.03858 (2020).
 #' @details Function which handles all implementations of LDA. 
 #' @examples 
 #' TrainData <- QDA_Data$TrainData

@@ -93,3 +93,6 @@ QDA(TrainData = TrainData,
      gamma = 1E-5)
      
 }
+\references{
+Lapanowski, Alexander F., and Gaynanova, Irina. ``Compressing large sample data for discriminant analysis'' arXiv preprint arXiv:2005.03858 (2020).
+}

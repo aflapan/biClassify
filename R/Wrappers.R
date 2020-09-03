@@ -87,6 +87,7 @@ is.not.null <- function(x) !is.null(x)
 #' @description Returns a (m x 1) vector of predicted group membership (either 1 or 2) for each data point in X. Uses Data and Cat to train the classifier.
 #' @details Function which handles classification. Generates feature weight vector and discriminant coefficients vector in sparse kernel optimal scoring. If a matrix X is provided, the function classifies each data point using the generated feature weight vector and discriminant vector. Will use user-supplied parameters Sigma, Gamma, and Lambda if any are given. If any are missing, the function will run SelectParams to generate the other parameters. User-specified values must satisfy hierarchical ordering.
 #' @examples 
+#' \dontrun{
 #' Sigma <- 1.325386  #Set parameter values equal to result of SelectParam.
 #' Gamma <- 0.07531579 #Speeds up example.
 #' Lambda <- 0.002855275
@@ -102,6 +103,7 @@ is.not.null <- function(x) !is.null(x)
 #'     Sigma = Sigma , 
 #'     Gamma = Gamma , 
 #'     Lambda = Lambda)
+#'}
 #' @return  A list of
 #' \item{Predictions}{ (m x 1) Vector of predicted class labels for the data points in TestData. Only included in non-null value of X is provided.} 
 #' \item{Weights}{ (p x 1) Vector of feature weights.} 

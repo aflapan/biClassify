@@ -11,18 +11,20 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
+LOCAL <- identical(Sys.getenv("LOCAL"), "true")
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
+#knitr::opts_chunk$set(purl = CRAN)
 ```
 
 \section{Introduction}
 \texttt{biClassify} is a package for adapting Linear Discriminant Analysis (LDA), Quadratic Discriminant Analysis (QDA), and Kernel Discriminant Analysis to a variety of situations where the conventional methods may not work. In particular, this package has methodology for the following problems:
 
 \begin{enumerate}
-\item Linear and Quadratic classification in the large-sample case with small-to-medium sized number of features. The available compressed LDA and QDA methods provide alternatives to random sub-sampling which are shown to produce lower mean misclassification error rates and lower standard error in the misclassification error rates [Lapanowski and Gaynanova] (preprint, 2020).
-\item Kernel classification where the data has a medium-to-large number of features. In this case, one would like to learn a non-linear decision boundary and have simultaneous sparse feature selection. The sparse kernel discriminant analysis method provided, Sparse Kernel Optimal Scoring, is presented in Lapanowski and Gaynanova, 2019.
+\item Linear and Quadratic classification in the large-sample case with small-to-medium sized number of features. The available compressed LDA and QDA methods provide alternatives to random sub-sampling which are shown to produce lower mean misclassification error rates and lower standard error in the misclassification error rates (see e.g. Lapanowski and Gaynanova,  preprint, 2020).
+\item Kernel classification where the data has a medium-to-large number of features. In this case, one would like to learn a non-linear decision boundary and have simultaneous sparse feature selection. The sparse kernel discriminant analysis method provided, Sparse Kernel Optimal Scoring, is presented in Lapanowski and Gaynanova (2019).
 \end{enumerate}
 
 
@@ -36,7 +38,7 @@ We first load the package
 library(biClassify)
 ```
 \subsection{Quick LDA Example}
-Our first example illustrates the compressed LDA function on data well-suited for LDA. The first two features of the training data in \texttt{LDA_Data} are plotted below:
+Our first example illustrates the compressed LDA function on data well-suited for LDA. The first two features of the training data in \texttt{LDA\_Data} are plotted below:
 ```{r}
 data(LDA_Data)
 ```
@@ -56,13 +58,13 @@ Let us use compressed LDA to predict the test data labels.
 test_pred <- LDA(TrainData = LDA_Data$TrainData,
                  TrainCat = LDA_Data$TrainCat,
                  TestData = LDA_Data$TestData,
-                 Method = "Compressed")
+                 Method = "Compressed")$Predictions
 mean(test_pred != LDA_Data$TestCat)
 ```
 The automatic impementation of compressed LDA predicted the Test labels perfectly! However, this is due, in part, to the classes being well-separated and having the same covariance structure. Let us now consider an example of where LDA will not perform well.
 
 \subsection{Quick QDA Example}
-Our next example illustrates the compressed QDA function on data well-suited for QDA. The first two features of the training data in \texttt{QDA_Data} are plotted below:
+Our next example illustrates the compressed QDA function on data well-suited for QDA. The first two features of the training data in \texttt{QDA\_Data} are plotted below:
 
 ```{r}
 data(QDA_Data)
@@ -90,7 +92,7 @@ Compressed QDA gives perfect class prediction
 \subsection{Quick Sparse Kernel Optimal Scoring Example}
 What happens if the data is not well-suited to either Linear or Quadratic Discriminant Analysis? Moreover, what happens if, in addtion to a non-linear decision boundary between classes, there also appear to be variables which do not contribute to group separation?
 
-For example, consider the \texttt{KOS_Data} shown below.
+For example, consider the \texttt{KOS\_Data} shown below.
 ```{r}
 data(KOS_Data)
 ```
@@ -143,12 +145,11 @@ This section provides a more in-depth treatment to the Linear Discriminant metho
 
 There are five seperate linear discriminant methods avilable through the \texttt{LDA} wrapper function:
 \begin{enumerate}
-\item \texttt{Full} Linear Discriminant Analsysis, which is LDA trained on the full data
-[Cite Mardia or Elements of Stat. Learning].
-\item \texttt{Compressed} Linear Discriminant Analysis [Lapanowski, Gaynanova] (2020, preprint).
-\item \texttt{Projected} LDA [Lapanowski, Gaynanova] (2020, preprint)
+\item \texttt{Full} Linear Discriminant Analsysis, which is LDA trained on the full data as presented in Mardia, and Kent (1979).
+\item \texttt{Compressed} Linear Discriminant Analysis in Lapanowski, Gaynanova (2020, preprint).
+\item \texttt{Projected} LDA in Lapanowski and Gaynanova (2020, preprint)
 \item \texttt{Subsampled} LDA, where LDA is trained on data which is sub-sampled uniformly from both classes.
-\item \texttt{FashRandomFisher} Discriminant Analysis as in [Ye, et. al.] (2017).
+\item \texttt{FashRandomFisher} Discriminant Analysis as in Ye, et. al. (2017).
 \end{enumerate}
 
 The individual methods are invoked by setting the \texttt{Method} argument. Let us first load the data for notational convenience.
@@ -162,10 +163,10 @@ TestCat <- LDA_Data$TestCat
 
 \subsection{Full LDA}
 This method is the result of setting \texttt{Method} equal to \texttt{"Full"}.
-This method is traditional Linear Discriminant Analysis, as presented in [Citation]. No additional parameters need to be supplied, and the code will run as stated.
+This method is traditional Linear Discriminant Analysis, as presented in Mardia and Kent (1979). No additional parameters need to be supplied, and the code will run as stated.
 
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData)
+test_pred <- LDA(TrainData, TrainCat, TestData)$Predictions
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -180,14 +181,15 @@ $$
 
 
 
-This method is the result of setting \texttt{Method} equal to \verb+"Compressed"+. It is compressed LDA, as presented in Lapanowski, Gaynanova (2020), preprint. Compressed LDA reduces the group sample amounts from $n_1$ and $n_2$ to $m_1$ and $m_2$ respectively.
+This method is the result of setting \texttt{Method} equal to \verb+"Compressed"+. It is compressed LDA, as presented in Lapanowski, Gaynanova (2020, preprint). Compressed LDA reduces the group sample amounts from $n_1$ and $n_2$ to $m_1$ and $m_2$ respectively.
 
 Compressed LDA requires the parameters \texttt{m1}, \texttt{m2}, \texttt{s}.
 
 
 The easiest way to run Compressed LDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Automatic")
+test_pred <- LDA(TrainData, TrainCat, TestData, 
+                 Method = "Compressed", Mode = "Automatic")$Predictions
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -195,7 +197,7 @@ mean(test_pred != TestCat)
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Compressed")
+test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Compressed")$Predictions
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -204,7 +206,8 @@ and obtain the same output.
 
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the compression amounts $m_1$, $m_2$, and sparsity level $s$ to be used in compression. The user will type in the amounts:
 ```{r, eval=FALSE}
-output <- LDA(TrainData, TrainCat, TestData, Method = "Compressed", Mode = "Interactive")
+output <- LDA(TrainData, TrainCat, TestData, 
+              Method = "Compressed", Mode = "Interactive")$Predictions
 "Please enter the number m1 of group 1 compression samples: "700
 "Please enter the number m2 of group 2 compression samples: "300
 "Please enter sparsity level s used in compression: "0.01
@@ -215,8 +218,9 @@ and the output is produced.
 If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{LDA} function all parameters. 
 
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Compressed", 
-              Mode = "Research", m1 = 700, m2 = 300, s = 0.01)
+test_pred <- LDA(TrainData, TrainCat, TestData, 
+                 Method = "Compressed", Mode = "Research", 
+                 m1 = 700, m2 = 300, s = 0.01)$Predictions
 
 table(test_pred)
 mean(test_pred != TestCat)
@@ -233,14 +237,16 @@ To run sub-sampled LDA, set \texttt{Method} equal to \texttt{Subsampled}. It req
 
 The easiest way to run Compressed LDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Automatic")
+test_pred <- LDA(TrainData, TrainCat, TestData, 
+                 Method = "Subsampled", Mode = "Automatic")$Predictions
 table(test_pred)
 ```
 
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Subsampled")
+test_pred <- LDA(TrainData, TrainCat, TestData, 
+                 Method = "Subsampled")$Predictions
 table(test_pred)
 ```
 and obtain the same output.
@@ -248,7 +254,8 @@ and obtain the same output.
  
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the sub-sample amounts $m_1$, $m_2$ for each group to be used. The user will type in the amounts:
 ```{r, eval=FALSE}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Subsampled", Mode = "Interactive")
+test_pred <- LDA(TrainData, TrainCat, TestData, 
+                 Method = "Subsampled", Mode = "Interactive")$Predictions
 "Please enter the number m1 of group 1 sub-samples: "700
 "Please enter the number m2 of group 2 sub-samples: "300
 ```
@@ -259,8 +266,9 @@ and the output is produced.
 If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{LDA} function all parameters. 
 
 ```{r}
-output <- LDA(TrainData, TrainCat, TestData, Method = "Subsampled", 
-              Mode = "Research", m1 = 700, m2 = 300)
+output <- LDA(TrainData, TrainCat, TestData, 
+              Method = "Subsampled", Mode = "Research", 
+              m1 = 700, m2 = 300)$Predictions
 
 table(output)
 mean(output != TestCat)
@@ -271,7 +279,7 @@ WARNING: The argument \texttt{Mode} will override any supplied parameters if its
 
 
 \subsection{Projected LDA}
-This method is the result of setting \texttt{Method} equal to \verb+"PRojected"+. It is Projected LDA, as presented in Lapanowski, Gaynanova (2020), preprint. Projected LDA creates the discriminant vector on compressed data and then projects the full training data onto the discriminant vector.
+This method is the result of setting \texttt{Method} equal to \verb+"PRojected"+. It is Projected LDA, as presented in Lapanowski, Gaynanova (2020, preprint). Projected LDA creates the discriminant vector on compressed data and then projects the full training data onto the discriminant vector.
 
 Projected LDA requires the parameters \texttt{m1}, \texttt{m2}, \texttt{s}.
 
@@ -279,7 +287,8 @@ Projected LDA requires the parameters \texttt{m1}, \texttt{m2}, \texttt{s}.
 
 The easiest way to run Projected LDA is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-output <- LDA(TrainData, TrainCat, TestData, Method = "Projected", Mode = "Automatic")
+output <- LDA(TrainData, TrainCat, TestData, 
+              Method = "Projected", Mode = "Automatic")$Predictions
 table(output)
 mean(output != TestCat)
 ```
@@ -287,7 +296,8 @@ mean(output != TestCat)
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-output <- LDA(TrainData, TrainCat, TestData, Method = "Projected")
+output <- LDA(TrainData, TrainCat, TestData, 
+              Method = "Projected")$Predictions
 table(output)
 mean(output != TestCat)
 ```
@@ -296,7 +306,8 @@ and obtain the same output.
 
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the compression amounts $m_1$, $m_2$, and sparsity level $s$ to be used in compression. The user will type in the amounts:
 ```{r, eval=FALSE}
-output <- LDA(TrainData, TrainCat, TestData, Method = "Projected", Mode = "Interactive")
+output <- LDA(TrainData, TrainCat, TestData, 
+              Method = "Projected", Mode = "Interactive")$Predictions
 "Please enter the number m1 of group 1 compression samples: "700
 "Please enter the number m2 of group 2 compression samples: "300
 "Please enter sparsity level s used in compression: "0.01
@@ -308,8 +319,9 @@ and the output is produced.
 If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{LDA} function all parameters. 
 
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "Projected", 
-              Mode = "Research", m1 = 700, m2 = 300, s = 0.01)
+test_pred <- LDA(TrainData, TrainCat, TestData, 
+                 Method = "Projected", Mode = "Research", 
+                 m1 = 700, m2 = 300, s = 0.01)$Predictions
 
 table(test_pred)
 mean(output != TestCat)
@@ -331,7 +343,8 @@ Fast Random Fisher requires the parameters \texttt{m}, and \texttt{s}.
 
 The easiest way to run Fast Random Fisher is to set \texttt{Mode} to \texttt{Automatic} and not worry about supplying additional parameters.
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "fastRandomFisher", Mode = "Automatic")
+test_pred <- LDA(TrainData, TrainCat, TestData, 
+                 Method = "fastRandomFisher", Mode = "Automatic")$Predictions
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -339,7 +352,8 @@ mean(test_pred != TestCat)
 \texttt{Automatic} is the default value for \texttt{Mode}, and so one could simply run
 
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "fastRandomFisher")
+test_pred <- LDA(TrainData, TrainCat, TestData, 
+                 Method = "fastRandomFisher")$Predictions
 table(test_pred)
 mean(test_pred != TestCat)
 ```
@@ -349,7 +363,8 @@ and obtain the same output.
 
 When \texttt{Mode} is set to \texttt{Interactive}, prompts will appear asking for the total amount of compressed samples $m$ and sparsity level $s$ to be used in compression. The user will type in the amounts:
 ```{r, eval=FALSE}
-output <- LDA(TrainData, TrainCat, TestData, Method = "fastRandomFisher", Mode = "Interactive")
+output <- LDA(TrainData, TrainCat, TestData, 
+              Method = "fastRandomFisher", Mode = "Interactive")$Predictions
 "Please enter the number m of total compressed samples: "1000
 "Please enter sparsity level s used in compression: "0.01
 ```
@@ -359,8 +374,9 @@ and the output is produced.
 If the user is interested in running simulation studies or has mastery over the functionality, they may wish to give the \texttt{LDA} function all parameters. 
 
 ```{r}
-test_pred <- LDA(TrainData, TrainCat, TestData, Method = "fastRandomFisher", 
-              Mode = "Research", m = 1000, s = 0.01)
+test_pred <- LDA(TrainData, TrainCat, TestData, 
+                 Method = "fastRandomFisher", Mode = "Research", 
+                 m = 1000, s = 0.01)$Predictions
 
 table(test_pred)
 mean(test_pred != TestCat)
@@ -376,9 +392,8 @@ This section provides a more in-depth treatment to the Linear Discriminant metho
 
 There are three seperate quadratic discriminant methods avilable through the \texttt{QDA} wrapper function:
 \begin{enumerate}
-\item \texttt{Full} Quadratic Discriminant Analsysis, which is QDA trained on the full data
-[Cite Mardia or Elements of Stat. Learning].
-\item \texttt{Compressed} Qinear Discriminant Analysis [Lapanowski, Gaynanova] (2020, preprint).
+\item \texttt{Full} Quadratic Discriminant Analsysis, which is QDA trained on the full data as presented in Mardia and Kent (1979).
+\item \texttt{Compressed} Qinear Discriminant Analysis as presente din Lapanowski and Gaynanova (2020, preprint).
 \item \texttt{Subsampled} QDA, where QDA is trained on data which is sub-sampled uniformly from both classes.
 \end{enumerate}
 
@@ -394,7 +409,7 @@ TestCat <- QDA_Data$TestCat
 
 \subsection{Full QDA}
 This method is the result of setting \texttt{Method} equal to \texttt{"Full"}.
-This method is traditional Quadratic Discriminant Analysis, as presented in [Citation]. No additional parameters need to be supplied, and the code will run as stated. Unlike the \texttt{LDA} function, only the class predictions are produced:
+This method is traditional Quadratic Discriminant Analysis, as presented in Mardia and Kent (1979). No additional parameters need to be supplied, and the code will run as stated. Unlike the \texttt{LDA} function, only the class predictions are produced:
 
 ```{r}
 Predictions <- QDA(TrainData, TrainCat, TestData, Method = "Full")
@@ -402,7 +417,7 @@ table(Predictions)
 ```
 
 \subsection{Compressed QDA}
-This method is the result of setting \texttt{Method} equal to \verb+"Compressed"+. It is compressed QDA, as presented in Lapanowski, Gaynanova (2020), preprint. Compressed QDA reduces the group sample amounts from $n_1$ and $n_2$ to $m_1$ and $m_2$ respectively via compression and trains QDA on the reduced samples.
+This method is the result of setting \texttt{Method} equal to \verb+"Compressed"+. It is compressed QDA, as presented in Lapanowski, Gaynanova (2020, preprint). Compressed QDA reduces the group sample amounts from $n_1$ and $n_2$ to $m_1$ and $m_2$ respectively via compression and trains QDA on the reduced samples.
 
 Compressed QDA requires the parameters \texttt{m1}, \texttt{m2}, \texttt{s}.
 
@@ -492,7 +507,7 @@ WARNING: The argument \texttt{Mode} will override any supplied parameters if its
 
 \section{Sparse Kernel Discriminant Analysis}
 
-This section presents the kernel optimal scoring method available in the \texttt{biClassify} package. Kernel optimal scoring is presented in [Lapanowski and Gaynanova] Artificial Intelligence and Statistics, 2019. 
+This section presents the kernel optimal scoring method available in the \texttt{biClassify} package. Kernel optimal scoring is presented in Lapanowski and Gaynanova (2019). 
 
 Kernel optimal scoring finds the kernel discriminant coefficients $\alpha\in \mathbb{R}^{n}$ by solving a kernelized form of the optimal scoring problem
 \begin{align*}
@@ -529,13 +544,13 @@ To select the gaussian kernel parameter $\sigma^2$,is selected based on the $\{.
 $$
 \{\|x_{i_1}-x_{i_2}\|_2^2\,:x_{i_1} \in C_1,\,x_{i_2}\in C_2\}.
 $$
-The ridge parameter $\gamma$ is selected by adapting a kernel matrix shrinkage technique [Lancewicki, 2017] to the setting of ridge regression. For more details, see [Lapanowski and Gaynanova, 2019].
+The ridge parameter $\gamma$ is selected by adapting a kernel matrix shrinkage technique Lancewicki (2017) to the setting of ridge regression. For more details, see Lapanowski and Gaynanova (2019).
 
 The sparsity parameter $\lambda$ is selected using 5-fold cross-validation to minimize the error rate over a grid of 20 equally-spaced values. 
 
-The function \texttt{SelectParams} implements these methods automatically. For more details, see [Lapanowski and Gaynanova, 2019].
+The function \texttt{SelectParams} implements these methods automatically. For more details, see Lapanowski and Gaynanova (2019).
 
-```{r}
+```{r, eval = LOCAL}
 SelectParams(TrainData, TrainCat)
 ```
 If parameters are not supplied to \texttt{KOS}, the 
@@ -555,12 +570,12 @@ Bottom  `Lambda`
 
 When using either of the functions, the user is only allowed to specify parameter combinations which adhere to the hierarchical ordering above. That is, they can only input parameters which go from Top to Bottom. For example, they could specify both `Sigma` and `Gamma`, but leave `Lambda` as the default `NULL` value. On the other hand, the user would not be allowed to specify only `Lambda` while leaving `Sigma` and `Gamma` as their default `NULL` values.
 
-```{r}
+```{r, eval = LOCAL}
 SelectParams(TrainData, TrainCat, Sigma = 1, Gamma = 0.1)
 ```
 
 If the user supplies parameter values which violate the hierarchical ordering, the error message ``Hierarchical order of parameters violated.`` will be returned.
-```{r, error = TRUE}
+```{r, error = TRUE, eval = LOCAL}
 SelectParams(TrainData, TrainCat, Gamma = 0.1)
 ```
 
@@ -570,7 +585,7 @@ SelectParams(TrainData, TrainCat, Gamma = 0.1)
 This package comes with an all-purpose function for running kernel optimal scoring.
 
 
-```{r}
+```{r, eval = LOCAL}
 Sigma <- 1.325386  
 Gamma <- 0.07531579 
 Lambda <- 0.002855275
@@ -582,7 +597,10 @@ table(output$Predictions)
 summary(output$Dvec)
 ```
 
-
+\begin{thebibliography}{widest entry}
+ \bibitem[LG19]{SparseKOS} bibliographic information
+ \bibitem[LG20]{CompLDA} bibliographic information
+\end{thebibliography}
 
 
 

@@ -71,6 +71,11 @@ fastRandomFisher <- function(TrainData, TrainCat, TestData, G = NULL, m, s = 0.0
                   gamma = gamma, 
                   type = type)
   }
+  # --- isolate first column as discriminant vector ---
+  G <- as.matrix(G)
+  G <- G[,1]
+  
+  
   n1 <- sum(TrainCat == 1)
   n2 <- sum(TrainCat == 2)
   n <- n1 + n2
@@ -99,5 +104,5 @@ fastRandomFisher <- function(TrainData, TrainCat, TestData, G = NULL, m, s = 0.0
 
   Labels <- as.numeric(Mahala1 < Mahala2)
   Labels[Labels == 0] <- 2
-  return(Labels)
+  return(list(Dvec = G, Predictions = Labels))
 }

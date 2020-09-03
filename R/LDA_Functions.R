@@ -263,7 +263,7 @@ Classify <- function(TrainData, TrainCat, TestData, Dvec = NULL, W = NULL, gamma
   #compute Mahalanobis distances
   TestPredCat <- as.numeric(Mahala1 < Mahala2)
   TestPredCat[TestPredCat == 0] <- 2
-  return(TestPredCat)
+  return(list(Dvec = Dvec, Predictions = TestPredCat))
 }
 
 
@@ -312,13 +312,13 @@ compressPredict <- function(TrainData, TrainCat, TestData, m1, m2, s, gamma = 1E
   
   
   # ------- Create Labels using Compressed Covariance Matrix --------
-  compLabels <- Classify(TrainData = TrainData,
+  output <- Classify(TrainData = TrainData,
                          TrainCat = TrainCat,
                          TestData = TestData,
                          W = Wcomp,
                          gamma = gamma)
   
-  return(compLabels)
+  return(output)
 }
 
 
@@ -366,11 +366,11 @@ subsetPredict <- function(TrainData, TrainCat, TestData, m1, m2, gamma = 1E-5){
   SubCat <- output$Cat
   
   #------ Form Subset Labels ----------
-  subLabels <- Classify(TrainData = SubData,
+  output <- Classify(TrainData = SubData,
                         TrainCat = SubCat,
                         TestData = TestData,
                         gamma = gamma)
-  return(subLabels)
+  return(output)
 }
 
 
@@ -470,7 +470,7 @@ projectPredict <- function(TrainData, TrainCat, TestData, Q1 = NULL, Q2 = NULL, 
   
   Labels <- as.numeric(Mahala1 < Mahala2)
   Labels[Labels == 0] <- 2
-  return(Labels)
+  return(list(Dvec = Dvec, Predictions = Labels))
 }
 
 
@@ -530,6 +530,8 @@ testParameters <- function(m1,m2,s){
 #' @param gamma A numeric value for the stabilization amount gamma * I added to the covariance matrixed used in the LDA decision rule. Default amount is 1E-5. Cannot be negative.
 #' @param type A string of characters determining the type of compression matrix used. The accepted values are \code{Rademacher}, \code{Gaussian}, and \code{Count}.
 #' @description Generates class predictions for \code{TestData}.
+#' @references Lapanowski, Alexander F., and Gaynanova, Irina. ``Compressing large sample data for discriminant analysis'' arXiv preprint arXiv:2005.03858 (2020).
+#' @references Ye, Haishan, Yujun Li, Cheng Chen, and Zhihua Zhang. ``Fast Fisher discriminant analysis with randomized algorithms.'' Pattern Recognition 72 (2017): 82-92.
 #' @details Function which handles all implementations of LDA. 
 #' @examples 
 #' TrainData <- LDA_Data$TrainData
@@ -623,8 +625,9 @@ testParameters <- function(m1,m2,s){
 #'       Method = "fastRandomFisher",
 #'       Mode = "Automatic",
 #'       gamma = 1E-5)  
-#' @return 
-#' \item{Predictions}{(m x 1) Vector of predicted class labels for the data points in \code{TestData}.}  
+#' @return A list containing 
+#' \item{Predictions}{(m x 1) Vector of predicted class labels for the data points in \code{TestData}.}
+#' \item{Dvec}{(px1) Discriminant vector used to predict the class labels.}  
 #' @export
 LDA <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automatic", m1 = NULL, m2 = NULL, m = NULL, s = NULL, gamma = 1E-5, type = "Rademacher"){
   if(Mode == "Automatic"){
@@ -671,6 +674,7 @@ LDA <- function(TrainData, TrainCat, TestData, Method = "Full", Mode = "Automati
       s <- as.numeric(s)
       testParameters(m1 = m1, m2 = m2, s = s)
     }
+    
     return(projectPredict(TrainData = TrainData,
                           TrainCat = TrainCat,
                           TestData = TestData,

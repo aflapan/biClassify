@@ -12,8 +12,8 @@
 \contentsline {section}{Quadratic Discriminant Analysis}{10}{section*.13}
 \contentsline {subsection}{Full QDA}{10}{section*.14}
 \contentsline {subsection}{Compressed QDA}{11}{section*.15}
-\contentsline {subsection}{Sub-Sampled QDA}{11}{section*.16}
+\contentsline {subsection}{Sub-Sampled QDA}{12}{section*.16}
 \contentsline {section}{Sparse Kernel Discriminant Analysis}{12}{section*.17}
 \contentsline {subsection}{Parameter Selection}{13}{section*.18}
-\contentsline {subsection}{Hierarchical Parameters}{14}{section*.19}
-\contentsline {subsection}{KOS}{15}{section*.20}
+\contentsline {subsection}{Hierarchical Parameters}{13}{section*.19}
+\contentsline {subsection}{KOS}{14}{section*.20}

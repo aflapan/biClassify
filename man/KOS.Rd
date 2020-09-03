@@ -46,6 +46,7 @@ Returns a (m x 1) vector of predicted group membership (either 1 or 2) for each 
 Function which handles classification. Generates feature weight vector and discriminant coefficients vector in sparse kernel optimal scoring. If a matrix X is provided, the function classifies each data point using the generated feature weight vector and discriminant vector. Will use user-supplied parameters Sigma, Gamma, and Lambda if any are given. If any are missing, the function will run SelectParams to generate the other parameters. User-specified values must satisfy hierarchical ordering.
 }
 \examples{
+\dontrun{
 Sigma <- 1.325386  #Set parameter values equal to result of SelectParam.
 Gamma <- 0.07531579 #Speeds up example.
 Lambda <- 0.002855275
@@ -61,6 +62,7 @@ KOS(TestData = TestData,
     Sigma = Sigma , 
     Gamma = Gamma , 
     Lambda = Lambda)
+}
 }
 \references{
 Lapanowski, Alexander F., and Gaynanova, Irina. ``Sparse feature selection in kernel discriminant analysis via optimal scoring'', Artificial Intelligence and Statistics, 2019.

@@ -37,7 +37,7 @@ test_that("Testing classification compared to MASS LDA on leaf data", {
                            TrainCat = TrainCat,
                            TestData = data.matrix(leafshape17[, c(5, 7)]),
                            gamma = 0)
-  expect_equal(compLDAclass , MASSclass)
+  expect_equal(compLDAclass$Predictions , MASSclass)
 })
 
 test_that("Testing classification compared to MASS LDA on large normal data.", {
@@ -76,7 +76,7 @@ test_that("Testing classification compared to MASS LDA on large normal data.", {
                      TestData = TestData,
                      gamma = 0)
   
-  expect_equal(Labels , MASSclass)
+  expect_equal(Labels$Predictions , MASSclass)
 })
 
 
@@ -90,7 +90,7 @@ test_that("Check that Compressed Predict does not return NA",{
                                 TestData = TrainData,
                                 m1 = 10,
                                 m2 = 10,
-                                s = 1/2)
+                                s = 1/2)$Predictions
   expect_equal(any(is.na(compLabels)), FALSE)
 })
 
@@ -103,7 +103,7 @@ test_that("Check that Subset Predict does not return NA",{
                              TrainCat = TrainCat,
                              TestData = TrainData,
                              m1 = 10,
-                             m2 = 10)
+                             m2 = 10)$Predictions
   expect_equal(any(is.na(subLabels)), FALSE)
 })
 
@@ -184,7 +184,7 @@ test_that("Testing if subsetPredict equals Classify if subset is entire data for
   Labels <- Classify(TrainData = TrainData,
                      TrainCat = TrainCat,
                      TestData = TrainData)
-  expect_equal(Labels , subLabels)
+  expect_equal(Labels$Predictions , subLabels$Predictions)
 })
 
 
@@ -207,7 +207,7 @@ test_that("checking that projectPredict equals LDA when compression matrix is id
                               gamma = 0)
   leaf17.LDA <- MASS::lda(arch ~ logwid+loglen, data = leafshape17)
   MASSclass <- as.numeric(predict(leaf17.LDA)$class)
-  expect_equal(MASSclass, ProjClass)
+  expect_equal(MASSclass, ProjClass$Predictions)
 })
 
 
@@ -355,7 +355,7 @@ subsampleClasses function to generate data. Large normal data.", {
     Labels <- Classify(TrainData = subData,
                        TrainCat = subCat,
                        TestData = TestData,
-                       gamma = 0)
+                       gamma = 0)$Predictions
     
     PassTest[i] <- all(Labels == MASSclass)
     
