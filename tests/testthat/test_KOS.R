@@ -158,18 +158,18 @@ test_that("Checking that the SelectRidge Parameter Gamma > 0 ",{
 
 
 # --- Test SelectParams ---
-test_that("Checking that all parameters are positive", {
-  TrainData <- KOS_Data$TrainData
-  TrainCat <- KOS_Data$TrainCat
-  output <- SelectParams(TrainData = TrainData,
-                         TrainCat = TrainCat)
+#test_that("Checking that all parameters are positive", {
+#  TrainData <- KOS_Data$TrainData
+#  TrainCat <- KOS_Data$TrainCat
+#  output <- SelectParams(TrainData = TrainData,
+#                         TrainCat = TrainCat)
   
-  test_sigma <- output$Sigma
-  test_ridge <- output$Gamma
-  test_lambda <- output$Lambda
+#  test_sigma <- output$Sigma
+#  test_ridge <- output$Gamma
+#  test_lambda <- output$Lambda
   
-  expect_equal(all(test_sigma > 0, test_ridge > 0, test_lambda > 0), TRUE)
-})
+#  expect_equal(all(test_sigma > 0, test_ridge > 0, test_lambda > 0), TRUE)
+#})
 
 # --- Testing Projection Functions Give Equal Output ---
 test_that("Rcpp GetProjectionsCPP and R GetProjections functions are equal",{

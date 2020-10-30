@@ -4,16 +4,16 @@
 \contentsline {subsection}{Quick QDA Example}{3}{section*.5}
 \contentsline {subsection}{Quick Sparse Kernel Optimal Scoring Example}{3}{section*.6}
 \contentsline {section}{Compressed Linear Discriminant Analysis}{5}{section*.7}
-\contentsline {subsection}{Full LDA}{6}{section*.8}
-\contentsline {subsection}{Compressed LDA}{6}{section*.9}
-\contentsline {subsection}{Sub-Sampled LDA}{7}{section*.10}
-\contentsline {subsection}{Projected LDA}{8}{section*.11}
-\contentsline {subsection}{Fast Random Fisher Discriminant Analysis}{9}{section*.12}
-\contentsline {section}{Quadratic Discriminant Analysis}{10}{section*.13}
+\contentsline {subsection}{Full LDA}{5}{section*.8}
+\contentsline {subsection}{Compressed LDA}{5}{section*.9}
+\contentsline {subsection}{Sub-Sampled LDA}{6}{section*.10}
+\contentsline {subsection}{Projected LDA}{7}{section*.11}
+\contentsline {subsection}{Fast Random Fisher Discriminant Analysis}{8}{section*.12}
+\contentsline {section}{Quadratic Discriminant Analysis}{9}{section*.13}
 \contentsline {subsection}{Full QDA}{10}{section*.14}
-\contentsline {subsection}{Compressed QDA}{11}{section*.15}
-\contentsline {subsection}{Sub-Sampled QDA}{12}{section*.16}
+\contentsline {subsection}{Compressed QDA}{10}{section*.15}
+\contentsline {subsection}{Sub-Sampled QDA}{11}{section*.16}
 \contentsline {section}{Sparse Kernel Discriminant Analysis}{12}{section*.17}
-\contentsline {subsection}{Parameter Selection}{13}{section*.18}
+\contentsline {subsection}{Parameter Selection}{12}{section*.18}
 \contentsline {subsection}{Hierarchical Parameters}{13}{section*.19}
-\contentsline {subsection}{KOS}{14}{section*.20}
+\contentsline {subsection}{KOS}{13}{section*.20}

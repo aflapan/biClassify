@@ -2,10 +2,12 @@ Package: biClassify
 Type: Package
 Title: A Package for Binary Classification Using Extensions of Discriminant Analysis
 Version: 1.0
-Date: 2020-09-02
-Author: Alexander F. Lapanowski and Irina Gaynanova
+Date: 2020-10-20
+Authors@R: c(
+    person("Alexander F.", "Lapanowski", email = "aflapan@gmail.com", role = c("aut", "cre")),
+    person("Irina", "Gaynanova", email = "irinag@stat.tamu.edu", role = "aut"))
 Maintainer: Alexander F. Lapanowski <aflapan@gmail.com>
-Description: This package includes methods for sample size 
+Description: Implements methods for sample size 
   reduction within Linear and Quadratic Discriminant Analysis. Also includes methods
   for non-linear discriminant analysis with simultaneous sparse feature selection. 
 License: GPL-3
