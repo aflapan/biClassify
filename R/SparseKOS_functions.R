@@ -462,7 +462,7 @@ LassoCV <- function(TrainData, TrainCat, B, Gamma, Sigma,
 #' \item{Gamma}{ Ridge Parameter.}
 #' \item{Lambda}{ Sparsity parameter.}
 #' @examples 
-#' \dontrun{
+#' \donttest{
 #' Sigma <- 1.325386  #Set parameter values equal to result of SelectParam.
 #' Gamma <- 0.07531579 #Speeds up example
 #' 
