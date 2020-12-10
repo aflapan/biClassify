@@ -8,8 +8,8 @@ Authors@R: c(
     person("Irina", "Gaynanova", email = "irinag@stat.tamu.edu", role = "aut"))
 Maintainer: Alexander F. Lapanowski <aflapan@gmail.com>
 Description: Implements methods for sample size 
-  reduction within Linear and Quadratic Discriminant Analysis in Lapanowski and Gaynanova (2020) arXiv:2005.03858.
-  Also includes methods for non-linear discriminant analysis with simultaneous sparse feature selection in Lapanowski and Gaynanova (2019) PMLR 89:1704-1713. 
+  reduction within Linear and Quadratic Discriminant Analysis in Lapanowski and Gaynanova (2020) <arXiv:2005.03858>.
+  Also includes methods for non-linear discriminant analysis with simultaneous sparse feature selection in Lapanowski and Gaynanova (2019) PMLR<89:1704-1713>. 
 License: GPL-3
 Imports: Rcpp (>= 1.0.1), Matrix, stats, fields, MASS, datasets, mvtnorm, expm, DAAG
 Depends: R (>= 2.10)
