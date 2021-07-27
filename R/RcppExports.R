@@ -29,10 +29,6 @@ TMatCPP <- function(Data, Dvec, w0, sigmaTm) {
     .Call('_biClassify_TMatCPP', PACKAGE = 'biClassify', Data, Dvec, w0, sigmaTm)
 }
 
-compressedTMatCPP <- function(Data, Q, compDvec, w0, Sigma) {
-    .Call('_biClassify_compressedTMatCPP', PACKAGE = 'biClassify', Data, Q, compDvec, w0, Sigma)
-}
-
 ObjectiveFuncCPP <- function(w, Kw, Data, DVectors, YTheta, LambdaOF, GammaOF, EpsilonOF = 1e-5) {
     .Call('_biClassify_ObjectiveFuncCPP', PACKAGE = 'biClassify', w, Kw, Data, DVectors, YTheta, LambdaOF, GammaOF, EpsilonOF)
 }

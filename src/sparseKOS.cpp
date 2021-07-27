@@ -113,20 +113,6 @@ arma::Mat<double> TMatCPP(arma::Mat<double> Data, arma::Col<double> Dvec, arma::
   return(T);
 }
 
-// [[Rcpp::export]]
-arma::Mat<double> compressedTMatCPP(arma::Mat<double> Data, arma::Mat<double> Q, arma::Col<double> compDvec, arma::Col<double> w0, double Sigma){
-  int p = Data.n_cols;
-  int m = compDvec.n_rows;
-  arma::Mat<double> C = arma::eye(m,m)-(1/m)*arma::ones(m,m);
-  compDvec = compDvec;
-  
-  arma::Mat<double> T = arma::zeros(m,p);
-  for(int j=0; j<m; j++){
-    T.row(j)=compDvec.t()*DerivCPP(Data.row(j), Data , w0, Sigma);
-  }
-  T = C*T;
-  return(T);
-}
 
 // [[Rcpp::export]]
 double ObjectiveFuncCPP(arma::Col<double> w, arma::Mat<double> Kw, arma::Mat<double> Data, arma::Col<double> DVectors, arma::Mat<double> YTheta, double LambdaOF, double GammaOF, double EpsilonOF=1e-5){

@@ -99,21 +99,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// compressedTMatCPP
-arma::Mat<double> compressedTMatCPP(arma::Mat<double> Data, arma::Mat<double> Q, arma::Col<double> compDvec, arma::Col<double> w0, double Sigma);
-RcppExport SEXP _biClassify_compressedTMatCPP(SEXP DataSEXP, SEXP QSEXP, SEXP compDvecSEXP, SEXP w0SEXP, SEXP SigmaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::Mat<double> >::type Data(DataSEXP);
-    Rcpp::traits::input_parameter< arma::Mat<double> >::type Q(QSEXP);
-    Rcpp::traits::input_parameter< arma::Col<double> >::type compDvec(compDvecSEXP);
-    Rcpp::traits::input_parameter< arma::Col<double> >::type w0(w0SEXP);
-    Rcpp::traits::input_parameter< double >::type Sigma(SigmaSEXP);
-    rcpp_result_gen = Rcpp::wrap(compressedTMatCPP(Data, Q, compDvec, w0, Sigma));
-    return rcpp_result_gen;
-END_RCPP
-}
 // ObjectiveFuncCPP
 double ObjectiveFuncCPP(arma::Col<double> w, arma::Mat<double> Kw, arma::Mat<double> Data, arma::Col<double> DVectors, arma::Mat<double> YTheta, double LambdaOF, double GammaOF, double EpsilonOF);
 RcppExport SEXP _biClassify_ObjectiveFuncCPP(SEXP wSEXP, SEXP KwSEXP, SEXP DataSEXP, SEXP DVectorsSEXP, SEXP YThetaSEXP, SEXP LambdaOFSEXP, SEXP GammaOFSEXP, SEXP EpsilonOFSEXP) {
@@ -172,7 +157,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_biClassify_SolveKOSCPP", (DL_FUNC) &_biClassify_SolveKOSCPP, 3},
     {"_biClassify_DerivCPP", (DL_FUNC) &_biClassify_DerivCPP, 4},
     {"_biClassify_TMatCPP", (DL_FUNC) &_biClassify_TMatCPP, 4},
-    {"_biClassify_compressedTMatCPP", (DL_FUNC) &_biClassify_compressedTMatCPP, 5},
     {"_biClassify_ObjectiveFuncCPP", (DL_FUNC) &_biClassify_ObjectiveFuncCPP, 8},
     {"_biClassify_LambdaSeqCpp", (DL_FUNC) &_biClassify_LambdaSeqCpp, 3},
     {"_biClassify_GetProjectionsCPP", (DL_FUNC) &_biClassify_GetProjectionsCPP, 8},
